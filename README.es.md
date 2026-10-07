@@ -160,21 +160,26 @@ flowchart LR
 
 ### Cada tarea de la cola
 
-El orquestador **coordina, no implementa**: nunca lee código ni diffs, solo
-lo que le devuelven los scripts.
+El orquestador **coordina, no implementa**: trabaja con lo que le devuelven
+los scripts, no con el código. Única excepción: tras dos arreglos fallidos
+puede leer el test que falla y la función que prueba, para decidir entre
+bloquear la tarea o dar una orden más clara.
 
 ```mermaid
 flowchart LR
-  P(["Siguiente tarea PENDING"]) --> W["👷 Worker<br/>solo sus archivos"]
-  W --> G{"🚦 Gate"}
-  G -- verde --> Q{"🔍 QA"}
-  G -- rojo --> R["🔧 Arreglo<br/>máximo 2"]
+  N(["📋 queue.sh next"]) --> S["▶️ queue.sh start<br/>IN PROGRESS · quita el skip"]
+  S --> W["👷 Worker<br/>solo sus archivos<br/>tests en solo lectura"]
+  W -- OK --> G{"🚦 Gate<br/>guardia · tests · build"}
+  W -- "fuera de tarea<br/>o timeout" --> R["🔧 Arreglo<br/>máximo 2"]
+  G -- verde --> Q{"🔍 QA<br/>otro modelo"}
+  G -- rojo --> R
   Q -- FAIL --> R
   R --> G
-  Q -- PASS --> H["✅ Commit · DONE"]
-  R -- "sigue fallando" --> X["⛔ BLOCKED · git stash"]
-  H --> P
-  X --> P
+  Q -- PASS --> H["✅ queue.sh done<br/>DONE + commit"]
+  R -- "sigue fallando" --> X["⛔ queue.sh block<br/>stash + BLOCKED"]
+  H --> N
+  X --> N
+  N -- "cola vacía" --> F(["🏁 Fin"])
 ```
 
 - **Gate**: guardia de tests, typecheck, tests y build.
@@ -184,7 +189,8 @@ flowchart LR
   accesibilidad).
 
 Si la sesión se corta (cuota, portátil dormido…), se vuelve a lanzar igual:
-la tarea que quedó IN PROGRESS se guarda en un stash y se retoma.
+lo que quedó a medias de la tarea IN PROGRESS se guarda en un stash y esa
+tarea vuelve a empezar desde limpio.
 
 ## 🌙 Lanzamiento automático
 
@@ -229,7 +235,7 @@ uno y si tiene `/goal` y modo en segundo plano, y **solo te ofrece eso**.
 
 | Papel | Qué hace |
 | --- | --- |
-| 🎼 **Orquestador** | Reparte la cola, pasa el gate, decide arreglos y lleva `STATUS.md` |
+| 🎼 **Orquestador** | Reparte la cola (con `queue.sh`, que es quien lleva `STATUS.md`), pasa el gate y decide los arreglos |
 | 🛠️ **Implementa** | Hace cada tarea y sus arreglos |
 | 🎨 **Diseño** | Las tareas de interfaz, si las hay. Puede ser el mismo que implementa |
 | 🔍 **QA** | Revisa en solo lectura. Mejor de un proveedor distinto al que implementa |
@@ -355,8 +361,9 @@ bash tests/run.sh
 
 Cubre las trampas encontradas en la revisión (una comprobación borrada junto
 a un skip, un archivo prohibido modificado y con commit, un worker matado
-por una señal) la recuperación de la cola cuando se corta una sesión, y que el estado de la
-cola sobreviva a un stash o a un paso de git que falla.
+por una señal), la recuperación de la cola cuando se corta una sesión, que
+el estado de la cola sobreviva a un stash o a un paso de git que falla, y
+que tus propios cambios nunca acaben dentro de una tarea.
 
 ## 📁 Lo que deja en tu proyecto
 
@@ -518,9 +525,11 @@ los tests, con supervisión.
 
 <br/>
 
-No. Tiene prohibido tocar la SPEC, el plan y los tests de aceptación, y
-además la guardia lo comprueba en cada gate: cualquier cambio que no sea
-quitar el skip de la tarea en curso tumba el gate.
+Lo tiene prohibido, y además se lo ponemos difícil: los workers reciben los
+tests en solo lectura, quien quita el skip es `queue.sh` y la guardia
+revisa cada gate, así que cambiar una comprobación, añadir un skip o borrar
+un test lo tumba. Los scripts cazan las trampas habituales, pero no son un
+entorno aislado; por eso la revisión final vuelve a comprobar los tests.
 
 </details>
 

@@ -159,21 +159,26 @@ flowchart LR
 
 ### Each task in the queue
 
-The orchestrator **coordinates, it doesn't implement**: it never reads code
-or diffs, only what the scripts hand back.
+The orchestrator **coordinates, it doesn't implement**: it works from what
+the scripts hand back, not from the code. The only exception: after two
+failed fixes it may read the failing test and the function it tests, to
+decide between blocking the task and giving a clearer order.
 
 ```mermaid
 flowchart LR
-  P(["Next PENDING task"]) --> W["👷 Worker<br/>only its files"]
-  W --> G{"🚦 Gate"}
-  G -- green --> Q{"🔍 QA"}
-  G -- red --> R["🔧 Fix<br/>at most 2"]
+  N(["📋 queue.sh next"]) --> S["▶️ queue.sh start<br/>IN PROGRESS · removes the skip"]
+  S --> W["👷 Worker<br/>only its files<br/>tests read-only"]
+  W -- OK --> G{"🚦 Gate<br/>guard · tests · build"}
+  W -- "out of task<br/>or timeout" --> R["🔧 Fix<br/>at most 2"]
+  G -- green --> Q{"🔍 QA<br/>another model"}
+  G -- red --> R
   Q -- FAIL --> R
   R --> G
-  Q -- PASS --> H["✅ Commit · DONE"]
-  R -- "still failing" --> X["⛔ BLOCKED · git stash"]
-  H --> P
-  X --> P
+  Q -- PASS --> H["✅ queue.sh done<br/>DONE + commit"]
+  R -- "still failing" --> X["⛔ queue.sh block<br/>stash + BLOCKED"]
+  H --> N
+  X --> N
+  N -- "queue empty" --> F(["🏁 End"])
 ```
 
 - **Gate**: test guard, typecheck, tests and build.
@@ -182,7 +187,8 @@ flowchart LR
   (mobile and desktop screenshots, empty and error states, accessibility).
 
 If the session gets cut off (quota, laptop asleep…), launch it again the
-same way: the task left IN PROGRESS is stashed and resumed.
+same way: the half-done work of the task left IN PROGRESS goes to a stash
+and that task starts again from a clean state.
 
 ## 🌙 Automatic launch
 
@@ -229,7 +235,7 @@ each one accepts and whether it has `/goal` and a background mode, and
 
 | Role | What it does |
 | --- | --- |
-| 🎼 **Orchestrator** | Hands out the queue, runs the gate, decides fixes and keeps `STATUS.md` |
+| 🎼 **Orchestrator** | Hands out the queue (through `queue.sh`, which keeps `STATUS.md`), runs the gate and decides the fixes |
 | 🛠️ **Implements** | Does each task and its fixes |
 | 🎨 **Design** | The UI tasks, if any. Can be the same as implements |
 | 🔍 **QA** | Reviews read-only. Ideally a different provider from the implementer |
@@ -352,9 +358,10 @@ bash tests/run.sh
 ```
 
 It covers the cheats found in review (an assertion deleted together with a
-skip, a forbidden file changed and committed, a worker killed by a signal)
-queue recovery when a session is cut off, and the queue state surviving a
-stash or a git step that fails.
+skip, a forbidden file changed and committed, a worker killed by a signal),
+queue recovery when a session is cut off, the queue state surviving a stash
+or a git step that fails, and your own changes never ending up inside a
+task.
 
 ## 📁 What it leaves in your project
 
@@ -514,9 +521,11 @@ tests, supervised.
 
 <br/>
 
-No. It's forbidden to touch the SPEC, the plan and the acceptance tests, and
-the guard also checks it on every gate: any change other than removing the
-skip of the current task fails the gate.
+It's forbidden, and made hard on purpose: workers get the tests read-only,
+`queue.sh` is the one that removes the skip, and the guard checks every
+gate, so changing an assertion, adding a skip or deleting a test fails it.
+The scripts catch the usual tricks; they are not a sandbox, which is why
+the review at the end checks the tests again.
 
 </details>
 

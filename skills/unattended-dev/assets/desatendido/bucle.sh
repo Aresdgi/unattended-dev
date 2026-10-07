@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.3: external loop for orchestrators with no native goal.
+# unattended-dev v8.4: external loop for orchestrators with no native goal.
 # Relaunches the orchestrator, one task per round, with a clean context.
 # Which task comes next is decided by queue.sh, not by the model.
 #
@@ -43,6 +43,12 @@ for ((r = 1; r <= MAX_ROUNDS; r++)); do
   [ -f AGENT_STOP ] && { log "STOPPED: AGENT_STOP exists"; exit 0; }
   if (( $(date +%s) - start > MAX_HOURS * 3600 )); then
     log "STOPPED: reached the maximum of $MAX_HOURS hours"; exit 0
+  fi
+
+  if [ -n "$(git status --porcelain --untracked-files=all 2>/dev/null)" ]; then
+    log "STOPPED: the working tree has changes that are not from the queue. Commit or stash them, or run the queue in its own worktree."
+    git status --short | head -n 10 | tee -a "$LOG"
+    exit 1
   fi
 
   task=$("$QUEUE" next 2>>"$LOG"); status=$?

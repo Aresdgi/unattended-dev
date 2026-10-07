@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.3: fails if the acceptance tests have changed in anything
+# unattended-dev v8.4: fails if the acceptance tests have changed in anything
 # other than removing the skip since the start tag. It goes inside the gate.
 #
 # Usage: .desatendido/guardia-tests.sh <tag> <tests-folder> [tests-without-skip...]

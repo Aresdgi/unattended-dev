@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.3: deterministic queue state. The orchestrator and
+# unattended-dev v8.4: deterministic queue state. The orchestrator and
 # bucle.sh call this instead of deciding by reading the table themselves.
 #
 # Reads and writes the queue table in STATUS.md (or $STATUS_FILE):
@@ -18,6 +18,8 @@
 #                                 2 tasks left but none can start.
 #   queue.sh start <task>         IN PROGRESS (committed) and remove the skip from
 #                                 its test (not committed: it is part of the task).
+#                                 Refuses if the working tree has other changes, so
+#                                 done and block only ever take this task's work.
 #   queue.sh done <task> <msg>    DONE and commit everything as "<task>: <msg>".
 #   queue.sh block <task> <why>   Stash the task's changes, then BLOCKED (committed).
 #   queue.sh recover              Every IN PROGRESS task was cut off: stash its
@@ -93,6 +95,16 @@ unskip() { # remove skip marks from one test file (the marks guardia-tests.sh kn
   rm -f "$tmp"
 }
 
+need_clean_tree() { # nothing but the queue may have changes when a task starts
+  local dirty
+  dirty=$(git status --porcelain --untracked-files=all 2>/dev/null)
+  [ -z "$dirty" ] && return 0
+  echo "queue: the working tree has changes that are not part of $1:" >&2
+  echo "$dirty" | head -n 10 | sed 's/^/  /' >&2
+  echo "queue: commit or stash them first, or run the queue in its own worktree (git worktree add)." >&2
+  exit 3
+}
+
 need_state() { # need_state <task> <state>
   local s; s=$(state_of "$1")
   [ -n "$s" ] || { echo "queue: unknown task: $1" >&2; exit 3; }
@@ -130,7 +142,7 @@ case "$cmd" in
     fi
     exit 1 ;;
   start)
-    task="${1:?queue start <task>}"; need_state "$task" PENDING
+    task="${1:?queue start <task>}"; need_state "$task" PENDING; need_clean_tree "$task"
     test_file=$(rows | awk -F'\t' -v t="$task" '$1 == t { print $3 }')
     set_state "$task" "IN PROGRESS" || exit 4
     if [ -n "$test_file" ] && [ "$test_file" != none ]; then unskip "$test_file" || exit 3; echo "$test_file"; fi ;;

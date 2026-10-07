@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/versión-8.3.0-7c3aed?style=for-the-badge" alt="versión 8.3.0"></a>
+  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/versión-8.4.0-7c3aed?style=for-the-badge" alt="versión 8.4.0"></a>
   <img src="https://img.shields.io/badge/estado-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="tests de los scripts"></a>
   <a href="#licencia"><img src="https://img.shields.io/badge/licencia-MIT-22c55e?style=for-the-badge" alt="licencia MIT"></a>
@@ -391,6 +391,10 @@ Valen siempre, sea cual sea el equipo o el modo:
 >   pregunta en vez de rellenarlo en silencio.
 > - **Las credenciales nunca entran en la cola**, ni `.env`, claves o logs
 >   en los commits.
+> - **La cola solo hace commit de su propio trabajo.** Una tarea no empieza
+>   si la carpeta tiene cambios que no son de la cola. Para seguir
+>   trabajando en el repo mientras tanto, usa un worktree tuyo
+>   (`git worktree add`).
 
 ## 📦 Instalación
 

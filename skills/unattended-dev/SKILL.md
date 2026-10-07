@@ -3,7 +3,7 @@ name: unattended-dev
 description: Turns a rough idea into a project that builds itself, with whatever team of agents and models the user wants (Claude, Codex, opencode or others, with or without Orca). Asks until the SPEC is clear, plans small tasks, picks the team from what is installed, prepares a minimal base with protected tests and launches the orchestrator in the background. Use it when the user says "I want to build...", "set up the project", "make it build itself", "unattended mode", "overnight mode", "leave it running" or "launch it", or in Spanish "quiero hacer...", "monta el proyecto", "prepáralo para que se haga solo", "modo desatendido", "modo nocturno", "déjalo picando" or "lánzalo", for a new project or a milestone of an existing repo.
 ---
 
-# unattended-dev v8.3
+# unattended-dev v8.4
 
 Always reply to the user in their language.
 

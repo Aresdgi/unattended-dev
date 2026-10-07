@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.3: launches a worker of any tool with a time limit,
+# unattended-dev v8.4: launches a worker of any tool with a time limit,
 # a full log and a warning if it touches files outside its task.
 #
 # Usage:

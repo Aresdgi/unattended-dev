@@ -1,6 +1,6 @@
 # Orchestrator rules
 
-<!-- unattended-dev v8.3. Fill in the values in braces and remove what does not apply. -->
+<!-- unattended-dev v8.4. Fill in the values in braces and remove what does not apply. -->
 
 You coordinate, you do not implement: you never write or fix code
 yourself. The user chose the team; do not change it.
@@ -71,7 +71,9 @@ task). Exit 1 means the queue is finished; exit 2, nothing can start.
 
 Never commit, stash or edit STATUS.md yourself: `queue.sh` does it so the
 state and the work can never drift apart. If a `queue.sh` command fails
-with exit 4, stop and report it: something in git needs a human.
+with exit 4, stop and report it: something in git needs a human. If
+`queue.sh start` refuses because the tree has changes that are not from
+the queue, do not commit or stash them: stop and report which files.
 
 ## Surprises
 

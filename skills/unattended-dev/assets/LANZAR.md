@@ -1,6 +1,6 @@
 # How to launch the queue
 
-<!-- unattended-dev v8.3. Fill in everything. If you launched it yourself, fill in "Launched for you" and delete "Launch it yourself"; if not, the other way round. -->
+<!-- unattended-dev v8.4. Fill in everything. If you launched it yourself, fill in "Launched for you" and delete "Launch it yourself"; if not, the other way round. -->
 
 **Before:** note the quota left on each tool of the team and the time. If
 one of them is not enough for the queue, wait for it to renew or switch
@@ -50,7 +50,11 @@ To stop at the end of the current round: `touch AGENT_STOP`.
 
 ## While it works
 
-Do not write to it. Check that the first worker uses the expected model.
+Do not write to it, and do not edit files in the project folder: the queue
+refuses to start a task while the tree has changes that are not its own.
+If you want to keep working on the repo, do it in a worktree of your own
+(`git worktree add ../{PROJECT}-mine`). Check that the first worker uses
+the expected model.
 To follow progress:
 
 ```zsh

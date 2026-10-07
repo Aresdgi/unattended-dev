@@ -170,6 +170,16 @@ check "the task stays IN PROGRESS" 0 $Q state T03; check_out "T03 still IN PROGR
 check "its work is still in the tree" 0 test -f src/T03.ts
 check "block also fails with 4" 4 $Q block T03 "x"
 rm -f .git/index.lock
+$Q block T03 "clean up" >/dev/null; $Q set T03 PENDING >/dev/null
+
+echo "== queue.sh: unrelated changes never enter a task"
+echo "readme" > README.md; git add README.md; git commit -qm readme
+echo "my own note" >> README.md
+check "start refuses with unrelated changes in the tree" 3 $Q start T03
+check_out "it names the file" "README.md"
+check "the task did not start" 0 $Q state T03; check_out "T03 still PENDING" "PENDING"
+check "my change is untouched" 0 grep -q "my own note" README.md
+git checkout -q -- README.md
 
 echo "== bucle.sh"
 new_repo loop
@@ -199,11 +209,16 @@ check_out "the loop ended with the queue done" "QUEUE DONE"
 check "T02 was done too" 0 .desatendido/queue.sh state T02; check_out "T02 DONE" "DONE"
 .desatendido/queue.sh set T01 PENDING >/dev/null; .desatendido/queue.sh set T02 PENDING >/dev/null
 printf '#!/usr/bin/env bash\necho "did nothing"\n' > orch.sh
+git commit -qam "fake orchestrator that does nothing"
 check "a round that leaves the task unfinished stops with 1" 1 .desatendido/bucle.sh
 touch AGENT_STOP
 check "AGENT_STOP stops the loop" 0 .desatendido/bucle.sh
 check_out "it says why" "AGENT_STOP"
 rm -f AGENT_STOP
+echo "my own note" > notes.txt
+check "the loop stops if the tree has changes that are not from the queue" 1 .desatendido/bucle.sh
+check_out "it says why" "not from the queue"
+rm -f notes.txt
 git checkout -q -- orch.sh
 .desatendido/queue.sh set T01 "IN PROGRESS" >/dev/null; mkdir -p src; echo half > src/T01.ts
 touch .git/index.lock

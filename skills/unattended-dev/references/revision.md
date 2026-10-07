@@ -5,11 +5,11 @@ Do it with the user when they come back with the result. {TAG} is
 
 ## Checks
 
-1. Queue state: `grep -E "PENDING|IN PROGRESS|DONE|BLOCKED" STATUS.md`
+1. Queue state: `.desatendido/queue.sh summary`
 2. Acceptance tests intact, with the tests of every DONE task:
 
    ```zsh
-   .desatendido/guardia-tests.sh {TAG} <tests-folder> <tests of the DONE tasks>
+   .desatendido/guardia-tests.sh {TAG} <tests-folder> $(.desatendido/queue.sh tests)
    ```
 
 3. Gate run by the user: `npm run gate` (or the project's one).

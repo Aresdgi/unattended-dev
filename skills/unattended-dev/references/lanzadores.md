@@ -5,7 +5,7 @@
 **CLI with `lanzar-worker.sh` (default, works with any tool):**
 
 ```zsh
-.desatendido/lanzar-worker.sh <role> <task> --allowed "<task files>" -- <role command> "<order>"
+.desatendido/lanzar-worker.sh <role> <task> --allowed "<task files>" --readonly "<tests folder>" -- <role command> "<order>"
 ```
 
 - Each role's command is its non-interactive form with the model made

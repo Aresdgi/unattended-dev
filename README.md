@@ -12,7 +12,9 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/version-8.1.1-7c3aed?style=for-the-badge" alt="version 8.1.1"></a>
+  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/version-8.2.0-7c3aed?style=for-the-badge" alt="version 8.2.0"></a>
+  <img src="https://img.shields.io/badge/status-experimental-f59e0b?style=for-the-badge" alt="experimental">
+  <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="script tests"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="MIT license"></a>
   <br/>
   <img src="https://img.shields.io/badge/Claude_Code-d97757?style=flat-square" alt="Claude Code">
@@ -26,6 +28,11 @@
   <br/>
   <sub>Example session</sub>
 </p>
+
+> [!WARNING]
+> **Experimental.** The scripts are tested on Linux and macOS (see
+> [Testing](#-testing)), but full unattended runs have only been tried on a
+> few small projects. Review what it builds before you trust it.
 
 > [!NOTE]
 > **Formerly `modo-desatendido`**, in the `aresdgi` marketplace. If you
@@ -75,10 +82,11 @@ Whatever you don't care about, it decides and marks *"(default)"*.
 </td>
 <td width="50%" valign="top">
 
-### 🛡️ Tests nobody can cheat
+### 🛡️ Tests that are hard to cheat
 
-They are written by someone who doesn't implement, and a guard in the gate
-rejects any change other than removing the skip of the current task.
+They are written by someone who doesn't implement, workers get them
+read-only, and a guard in the gate catches the usual tricks: changing an
+assertion, re-adding a skip, deleting a test.
 
 </td>
 </tr>
@@ -249,21 +257,23 @@ The skill always talks to you in your language.
 
 ## 🧰 Included scripts
 
-Phase zero copies three scripts to `.desatendido/` in your project. They
-work with any tool and on macOS without installing anything.
+Phase zero copies four scripts to `.desatendido/` in your project. They
+work with any tool and on macOS without installing anything. They detect
+problems after the fact and make the mechanical decisions; they are not a
+sandbox.
 
 <table>
 <tr>
-<td width="33%" valign="top">
+<td width="25%" valign="top">
 
 #### 🚀 `lanzar-worker.sh`
 
 Launches any worker with a **time limit**, a **full log** in `logs/` and
-only the last 30 lines of output. Warns if the worker touches files outside
-its task.
+only the last 30 lines of output. Can make the tests **read-only** while it
+runs, and flags any file touched outside its task, **committed or not**.
 
 </td>
-<td width="33%" valign="top">
+<td width="25%" valign="top">
 
 #### 🛡️ `guardia-tests.sh`
 
@@ -272,13 +282,22 @@ anything other than removing the skip, adds a new skip, deletes or creates
 tests, or marks a task done while its test is still skipped.
 
 </td>
-<td width="33%" valign="top">
+<td width="25%" valign="top">
+
+#### 📋 `queue.sh`
+
+Makes the **mechanical decisions** in code, not in the model: the next
+task, dependencies, BLOCKED propagation, removing the skip when a task
+starts and **recovering** a task that was cut off.
+
+</td>
+<td width="25%" valign="top">
 
 #### 🔁 `bucle.sh`
 
 Keeps the orchestrator alive if its tool has no native goal: one task per
-round, with a clean context, until the queue is empty or the hour limit is
-reached.
+round, chosen by `queue.sh`, with a clean context, until the queue is empty
+or the hour limit is reached.
 
 </td>
 </tr>
@@ -288,13 +307,18 @@ reached.
 <summary><b>Usage and exit codes</b></summary>
 
 ```zsh
-# A worker, with its allowed files
+# The queue: next task, start it (removes the skip of its test), finish it
+.desatendido/queue.sh next            # -> T01
+.desatendido/queue.sh start T01
+.desatendido/queue.sh set T01 DONE    # or BLOCKED
+
+# A worker, with its allowed files and the tests read-only
 .desatendido/lanzar-worker.sh implements T01 \
-  --allowed "src/dni.ts tests/acceptance/T01.test.ts" -- \
+  --allowed "src/dni.ts" --readonly "tests/acceptance" -- \
   opencode run -m <provider/model> "Implement task T01 of PLAN.md…"
 
-# The guard, at the start of the gate
-.desatendido/guardia-tests.sh fase-cero tests/acceptance tests/acceptance/T01.test.ts \
+# The guard, at the start of the gate, watching the started and DONE tasks
+.desatendido/guardia-tests.sh fase-cero tests/acceptance $(.desatendido/queue.sh tests) \
   && npm run typecheck && npm test && npm run build
 
 # The external loop: 4 hours max and a clean stop
@@ -307,12 +331,26 @@ touch AGENT_STOP   # stops at the end of the current round
 | `0` | Finished fine and touched nothing outside what's allowed |
 | `3` | **OUT OF TASK**: touched files that weren't allowed |
 | `124` | **TIMEOUT**: went over the limit (20 minutes by default) |
+| `128+N` | **KILLED**: the worker was stopped by signal N |
 
-`bucle.sh` stops by itself if the queue is empty, if `AGENT_STOP` exists, if
-it goes over `MAX_ROUNDS` or `MAX_HOURS`, or if a round makes neither a
-commit nor a stash.
+`bucle.sh` recovers any task left IN PROGRESS before starting, and stops by
+itself if the queue is empty, if no task can start, if `AGENT_STOP` exists,
+if it goes over `MAX_ROUNDS` or `MAX_HOURS`, or if a round ends without its
+task being DONE or BLOCKED.
 
 </details>
+
+## 🧪 Testing
+
+The scripts have their own test suite, run on Linux and macOS on every push:
+
+```zsh
+bash tests/run.sh
+```
+
+It covers the cheats found in review (an assertion deleted together with a
+skip, a forbidden file changed and committed, a worker killed by a signal)
+and queue recovery when a session is cut off.
 
 ## 📁 What it leaves in your project
 

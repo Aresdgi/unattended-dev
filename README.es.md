@@ -12,7 +12,9 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/versión-8.1.1-7c3aed?style=for-the-badge" alt="versión 8.1.1"></a>
+  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/versión-8.2.0-7c3aed?style=for-the-badge" alt="versión 8.2.0"></a>
+  <img src="https://img.shields.io/badge/estado-experimental-f59e0b?style=for-the-badge" alt="experimental">
+  <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="tests de los scripts"></a>
   <a href="#licencia"><img src="https://img.shields.io/badge/licencia-MIT-22c55e?style=for-the-badge" alt="licencia MIT"></a>
   <br/>
   <img src="https://img.shields.io/badge/Claude_Code-d97757?style=flat-square" alt="Claude Code">
@@ -26,6 +28,12 @@
   <br/>
   <sub>Sesión de ejemplo</sub>
 </p>
+
+> [!WARNING]
+> **Experimental.** Los scripts tienen tests en Linux y macOS (mira
+> [Tests](#-tests)), pero las ejecuciones desatendidas completas solo se han
+> probado en unos pocos proyectos pequeños. Revisa lo que construye antes de
+> fiarte.
 
 > [!NOTE]
 > **Antes se llamaba `modo-desatendido`** y vivía en el marketplace
@@ -75,10 +83,11 @@ que te da igual lo decide y lo marca *"(por defecto)"*.
 </td>
 <td width="50%" valign="top">
 
-### 🛡️ Tests que nadie puede trucar
+### 🛡️ Tests difíciles de trucar
 
-Los escribe quien no implementa, y una guardia en el gate tumba cualquier
-cambio que no sea quitar el skip de la tarea en curso.
+Los escribe quien no implementa, los workers los reciben en solo lectura y
+una guardia en el gate caza las trampas habituales: cambiar una
+comprobación, volver a poner un skip o borrar un test.
 
 </td>
 </tr>
@@ -248,21 +257,24 @@ La skill habla siempre en tu idioma, aunque sus archivos estén en inglés.
 
 ## 🧰 Scripts incluidos
 
-La fase cero copia tres scripts a `.desatendido/` en tu proyecto. Funcionan
-con cualquier herramienta y en macOS sin instalar nada.
+La fase cero copia cuatro scripts a `.desatendido/` en tu proyecto.
+Funcionan con cualquier herramienta y en macOS sin instalar nada. Detectan
+los problemas después de que ocurran y toman las decisiones mecánicas; no
+son un entorno aislado.
 
 <table>
 <tr>
-<td width="33%" valign="top">
+<td width="25%" valign="top">
 
 #### 🚀 `lanzar-worker.sh`
 
 Lanza cualquier worker con **límite de tiempo**, **registro completo** en
-`logs/` y solo las últimas 30 líneas de salida. Avisa si el worker toca
-archivos fuera de su tarea.
+`logs/` y solo las últimas 30 líneas de salida. Puede dejar los tests en
+**solo lectura** mientras trabaja y avisa de cualquier archivo tocado fuera
+de su tarea, **con commit o sin él**.
 
 </td>
-<td width="33%" valign="top">
+<td width="25%" valign="top">
 
 #### 🛡️ `guardia-tests.sh`
 
@@ -271,13 +283,22 @@ algo más que quitar el skip, añade un skip nuevo, borra o crea tests, o
 da por hecha una tarea que aún tiene su test en skip.
 
 </td>
-<td width="33%" valign="top">
+<td width="25%" valign="top">
+
+#### 📋 `queue.sh`
+
+Toma las **decisiones mecánicas** con código, no con el modelo: la
+siguiente tarea, las dependencias, propagar los BLOCKED, quitar el skip al
+empezar una tarea y **recuperar** una tarea que se cortó.
+
+</td>
+<td width="25%" valign="top">
 
 #### 🔁 `bucle.sh`
 
 Mantiene vivo al orquestador si su herramienta no tiene objetivo nativo:
-una tarea por vuelta, con el contexto limpio, hasta vaciar la cola o
-llegar al límite de horas.
+una tarea por vuelta, elegida por `queue.sh`, con el contexto limpio, hasta
+vaciar la cola o llegar al límite de horas.
 
 </td>
 </tr>
@@ -287,13 +308,18 @@ llegar al límite de horas.
 <summary><b>Uso y códigos de salida</b></summary>
 
 ```zsh
-# Un worker, con sus archivos permitidos
+# La cola: siguiente tarea, empezarla (quita el skip de su test) y cerrarla
+.desatendido/queue.sh next            # -> T01
+.desatendido/queue.sh start T01
+.desatendido/queue.sh set T01 DONE    # o BLOCKED
+
+# Un worker, con sus archivos permitidos y los tests en solo lectura
 .desatendido/lanzar-worker.sh implements T01 \
-  --allowed "src/dni.ts tests/acceptance/T01.test.ts" -- \
+  --allowed "src/dni.ts" --readonly "tests/acceptance" -- \
   opencode run -m <proveedor/modelo> "Implement task T01 of PLAN.md…"
 
-# La guardia, al principio del gate
-.desatendido/guardia-tests.sh fase-cero tests/acceptance tests/acceptance/T01.test.ts \
+# La guardia, al principio del gate, vigilando las tareas empezadas y DONE
+.desatendido/guardia-tests.sh fase-cero tests/acceptance $(.desatendido/queue.sh tests) \
   && npm run typecheck && npm test && npm run build
 
 # El bucle externo: máximo 4 horas y parada limpia
@@ -306,12 +332,27 @@ touch AGENT_STOP   # para al terminar la vuelta en curso
 | `0` | Terminó bien y no tocó nada fuera de lo permitido |
 | `3` | **OUT OF TASK**: tocó archivos no permitidos |
 | `124` | **TIMEOUT**: superó el límite (20 minutos por defecto) |
+| `128+N` | **KILLED**: el worker se paró por la señal N |
 
-`bucle.sh` se para solo si la cola se vacía, si existe `AGENT_STOP`, si se
-pasa de `MAX_ROUNDS` o `MAX_HOURS`, o si una vuelta no hace ni commit ni
-stash.
+`bucle.sh` recupera cualquier tarea que se quedara IN PROGRESS antes de
+empezar, y se para solo si la cola se vacía, si ninguna tarea puede
+empezar, si existe `AGENT_STOP`, si se pasa de `MAX_ROUNDS` o `MAX_HOURS`,
+o si una vuelta termina sin que su tarea quede DONE o BLOCKED.
 
 </details>
+
+## 🧪 Tests
+
+Los scripts tienen su propia batería de tests, que se ejecuta en Linux y
+macOS con cada push:
+
+```zsh
+bash tests/run.sh
+```
+
+Cubre las trampas encontradas en la revisión (una comprobación borrada junto
+a un skip, un archivo prohibido modificado y con commit, un worker matado
+por una señal) y la recuperación de la cola cuando se corta una sesión.
 
 ## 📁 Lo que deja en tu proyecto
 

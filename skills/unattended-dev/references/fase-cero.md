@@ -22,7 +22,7 @@ starting.
   executable.
 - A gate command that starts with the guard and goes on with typecheck,
   tests and build. For example:
-  `.desatendido/guardia-tests.sh fase-cero tests/acceptance && npm run typecheck && npm test && npm run build`
+  `.desatendido/guardia-tests.sh fase-cero tests/acceptance $(.desatendido/queue.sh tests) && npm run typecheck && npm test && npm run build`
 - `.gitignore` with `logs/` and `AGENT_STOP`.
 - Dev dependencies only unless the SPEC says otherwise. If a version
   breaks something, pin it and note it in `AGENTS.md`.
@@ -37,7 +37,9 @@ starting.
 - Fast mode: `PLAN.md` from `assets/PLAN.md`. Full mode: also
   `docs/tareas/Txx.md` with the same format per task and
   `docs/cierres/PLANTILLA.md` from `assets/CIERRE.md`.
-- `STATUS.md` from `assets/STATUS.md`.
+- `STATUS.md` from `assets/STATUS.md`, with each task's test path in
+  the Test column. Check it with `.desatendido/queue.sh next` (it must
+  print the first task).
 - Compute the values of the cases with a script, not from memory.
 
 ## 3. Acceptance tests
@@ -55,8 +57,8 @@ starting.
 ## 4. Conventions
 
 Short `AGENTS.md`: language, structure, contracts that do not change,
-pinned versions, commit format and "Acceptance tests are not touched
-except to remove the skip of your task". If Claude is on the team:
+pinned versions, commit format and "Acceptance tests are never touched:
+the queue removes the skip and they are read-only while you work". If Claude is on the team:
 `ln -s AGENTS.md CLAUDE.md`.
 
 ## 5. Orchestrator and team

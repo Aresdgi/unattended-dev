@@ -1,6 +1,6 @@
 # PLAN
 
-<!-- unattended-dev v8.1. Does not change during the queue; the state lives in STATUS.md. -->
+<!-- unattended-dev v8.2. Does not change during the queue; the state lives in STATUS.md. -->
 
 Gate: `{GATE}`
 Acceptance tests: `{TESTS_FOLDER}`
@@ -9,7 +9,7 @@ Acceptance tests: `{TESTS_FOLDER}`
 
 - **Goal:** {one or two sentences; points to the section of docs/SPEC.md}
 - **Signature or screen:** `{exact signature, or route and states}`
-- **Files it may touch:** `{file}`, `{T01 test}` (only to remove the skip)
+- **Files it may touch:** `{file}` (never the tests: `queue.sh start` removes the skip and they stay read-only)
 - **Test:** `{path of the T01 acceptance test}`
 - **Done by:** implements | design
 - **Depends on:** none

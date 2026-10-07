@@ -1,0 +1,21 @@
+name: scripts
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax
+        run: for f in skills/unattended-dev/assets/desatendido/*.sh tests/run.sh; do bash -n "$f"; done
+      - name: Scripts are executable
+        run: test -z "$(find skills/unattended-dev/assets/desatendido -name '*.sh' ! -perm -u+x)"
+      - name: Tests
+        run: bash tests/run.sh

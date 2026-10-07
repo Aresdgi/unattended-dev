@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 400" width="1280" height="400" role="img" aria-label="unattended-dev: cuenta la idea, déjalo picando, vuelve a revisar">
+<title>unattended-dev</title>
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+  .tw { animation: tw 4s ease-in-out infinite; }
+  .tw1 { animation-delay: 1.3s; } .tw2 { animation-delay: 2.6s; }
+  @keyframes tw { 0%,100% { opacity: .15 } 50% { opacity: 1 } }
+  .dot { animation: viaje 6s cubic-bezier(.6,0,.4,1) infinite; }
+  @keyframes viaje { 0% { transform: translateX(0); opacity: 0 } 8% { opacity: 1 } 85% { opacity: 1 }
+                      100% { transform: translateX(928px); opacity: 0 } }
+  @media (prefers-reduced-motion: reduce) { .tw, .dot { animation: none; } .dot { display: none; } }
+</style>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#060914"/><stop offset=".55" stop-color="#141038"/><stop offset="1" stop-color="#2b1458"/>
+  </linearGradient>
+  <radialGradient id="halo" cx=".5" cy=".5" r=".5">
+    <stop offset="0" stop-color="#a78bfa" stop-opacity=".45"/><stop offset="1" stop-color="#a78bfa" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="luna" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fff7d6"/><stop offset="1" stop-color="#f5c96b"/>
+  </linearGradient>
+  <linearGradient id="titulo" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c4b5fd"/>
+  </linearGradient>
+  <linearGradient id="hot" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#6d28d9"/>
+  </linearGradient>
+  <mask id="creciente"><rect width="1280" height="400" fill="#fff"/><circle cx="1162" cy="118" r="62" fill="#000"/></mask>
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <clipPath id="marco"><rect width="1280" height="400" rx="28"/></clipPath>
+</defs>
+<g clip-path="url(#marco)">
+  <rect width="1280" height="400" fill="url(#bg)"/>
+  <circle cx="415" cy="60" r="0.7" fill="#fff" opacity="0.29" class="tw tw0"/><circle cx="686" cy="146" r="0.7" fill="#fff" opacity="0.80"/><circle cx="275" cy="34" r="1.4" fill="#fff" opacity="0.29"/><circle cx="116" cy="170" r="1.8" fill="#fff" opacity="0.32"/><circle cx="286" cy="251" r="0.7" fill="#fff" opacity="0.60"/><circle cx="508" cy="391" r="0.7" fill="#fff" opacity="0.58"/><circle cx="170" cy="168" r="1.8" fill="#fff" opacity="0.32" class="tw tw0"/><circle cx="395" cy="326" r="0.9" fill="#fff" opacity="0.31"/><circle cx="731" cy="75" r="0.7" fill="#fff" opacity="0.58"/><circle cx="80" cy="24" r="0.9" fill="#fff" opacity="0.55"/><circle cx="681" cy="311" r="1.4" fill="#fff" opacity="0.60"/><circle cx="580" cy="120" r="0.9" fill="#fff" opacity="0.67"/><circle cx="312" cy="230" r="1.8" fill="#fff" opacity="0.55" class="tw tw0"/><circle cx="440" cy="180" r="1.8" fill="#fff" opacity="0.84"/><circle cx="151" cy="167" r="1.1" fill="#fff" opacity="0.34"/><circle cx="626" cy="16" r="0.7" fill="#fff" opacity="0.71"/><circle cx="733" cy="350" r="1.1" fill="#fff" opacity="0.45"/><circle cx="448" cy="199" r="1.4" fill="#fff" opacity="0.29"/><circle cx="120" cy="108" r="0.7" fill="#fff" opacity="0.29" class="tw tw0"/><circle cx="898" cy="259" r="1.4" fill="#fff" opacity="0.42"/><circle cx="494" cy="267" r="0.7" fill="#fff" opacity="0.81"/><circle cx="455" cy="244" r="1.4" fill="#fff" opacity="0.29"/><circle cx="983" cy="52" r="0.9" fill="#fff" opacity="0.49"/><circle cx="1174" cy="199" r="0.9" fill="#fff" opacity="0.52"/><circle cx="703" cy="353" r="1.4" fill="#fff" opacity="0.77" class="tw tw0"/><circle cx="356" cy="166" r="1.1" fill="#fff" opacity="0.66"/><circle cx="487" cy="92" r="0.7" fill="#fff" opacity="0.36"/><circle cx="297" cy="93" r="1.4" fill="#fff" opacity="0.75"/><circle cx="233" cy="113" r="0.9" fill="#fff" opacity="0.50"/><circle cx="473" cy="227" r="0.9" fill="#fff" opacity="0.66"/><circle cx="660" cy="247" r="0.7" fill="#fff" opacity="0.52" class="tw tw0"/><circle cx="1115" cy="381" r="1.8" fill="#fff" opacity="0.49"/><circle cx="511" cy="41" r="1.4" fill="#fff" opacity="0.29"/><circle cx="86" cy="84" r="0.9" fill="#fff" opacity="0.32"/><circle cx="769" cy="41" r="1.8" fill="#fff" opacity="0.34"/><circle cx="130" cy="145" r="0.7" fill="#fff" opacity="0.29"/><circle cx="266" cy="150" r="1.1" fill="#fff" opacity="0.82" class="tw tw0"/><circle cx="771" cy="190" r="0.7" fill="#fff" opacity="0.76"/><circle cx="1271" cy="186" r="1.4" fill="#fff" opacity="0.44"/><circle cx="184" cy="300" r="1.1" fill="#fff" opacity="0.54"/><circle cx="886" cy="207" r="0.9" fill="#fff" opacity="0.82"/><circle cx="676" cy="59" r="1.8" fill="#fff" opacity="0.80"/><circle cx="970" cy="119" r="0.7" fill="#fff" opacity="0.67" class="tw tw0"/><circle cx="334" cy="147" r="0.9" fill="#fff" opacity="0.46"/><circle cx="285" cy="217" r="1.8" fill="#fff" opacity="0.45"/><circle cx="285" cy="325" r="0.9" fill="#fff" opacity="0.73"/><circle cx="1047" cy="296" r="0.9" fill="#fff" opacity="0.37"/><circle cx="631" cy="292" r="0.7" fill="#fff" opacity="0.72"/><circle cx="604" cy="77" r="1.8" fill="#fff" opacity="0.82" class="tw tw0"/><circle cx="572" cy="375" r="1.1" fill="#fff" opacity="0.82"/><circle cx="467" cy="88" r="0.9" fill="#fff" opacity="0.53"/><circle cx="432" cy="193" r="1.8" fill="#fff" opacity="0.75"/><circle cx="614" cy="261" r="0.7" fill="#fff" opacity="0.75"/><circle cx="153" cy="155" r="0.9" fill="#fff" opacity="0.54"/><circle cx="229" cy="316" r="1.1" fill="#fff" opacity="0.30" class="tw tw0"/><circle cx="1211" cy="289" r="1.4" fill="#fff" opacity="0.49"/><circle cx="1212" cy="290" r="0.9" fill="#fff" opacity="0.85"/><circle cx="35" cy="236" r="1.4" fill="#fff" opacity="0.73"/><circle cx="187" cy="331" r="1.4" fill="#fff" opacity="0.64"/><circle cx="449" cy="219" r="0.9" fill="#fff" opacity="0.26"/><circle cx="1023" cy="291" r="0.7" fill="#fff" opacity="0.57" class="tw tw0"/><circle cx="1195" cy="174" r="0.9" fill="#fff" opacity="0.75"/><circle cx="270" cy="101" r="1.1" fill="#fff" opacity="0.55"/><circle cx="978" cy="130" r="1.8" fill="#fff" opacity="0.50"/><circle cx="168" cy="364" r="1.1" fill="#fff" opacity="0.79"/><circle cx="848" cy="326" r="1.8" fill="#fff" opacity="0.50"/><circle cx="1175" cy="201" r="1.8" fill="#fff" opacity="0.34" class="tw tw0"/><circle cx="654" cy="349" r="0.9" fill="#fff" opacity="0.62"/><circle cx="993" cy="60" r="0.9" fill="#fff" opacity="0.53"/><circle cx="928" cy="223" r="1.1" fill="#fff" opacity="0.66"/>
+  <circle cx="1130" cy="140" r="190" fill="url(#halo)"/>
+  <circle cx="1130" cy="140" r="72" fill="url(#luna)" mask="url(#creciente)"/>
+  <text x="80" y="96" font-size="15" font-weight="600" letter-spacing="4" fill="#a78bfa">SKILL · CLAUDE CODE · CODEX · OPENCODE</text>
+  <text x="76" y="178" font-size="80" font-weight="800" letter-spacing="-2.5" fill="url(#titulo)">unattended-dev</text>
+  <text x="80" y="232" font-size="27" fill="#cbd5e1">Cuenta la idea. Déjalo picando. Vuelve a revisar.</text>
+  <circle class="dot" cx="100" cy="311" r="5" fill="#fde68a" filter="url(#glow)"/>
+  <rect x="80" y="288" width="149" height="46" rx="23" fill="#1c1640" stroke="rgba(196,181,253,0.45)"/><text x="154" y="317" text-anchor="middle" font-size="18" font-weight="500" fill="#ddd6fe">Entrevista</text><path d="M235 311 h28" stroke="rgba(196,181,253,0.55)" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/><rect x="269.0" y="288" width="180" height="46" rx="23" fill="#1c1640" stroke="rgba(196,181,253,0.45)"/><text x="359" y="317" text-anchor="middle" font-size="18" font-weight="500" fill="#ddd6fe">Plan y equipo</text><path d="M456 311 h28" stroke="rgba(196,181,253,0.55)" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/><rect x="489.5" y="288" width="138" height="46" rx="23" fill="#1c1640" stroke="rgba(196,181,253,0.45)"/><text x="559" y="317" text-anchor="middle" font-size="18" font-weight="500" fill="#ddd6fe">Fase cero</text><path d="M634 311 h28" stroke="rgba(196,181,253,0.55)" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/><rect x="668.0" y="288" width="212" height="46" rx="23" fill="url(#hot)" stroke="#c4b5fd" filter="url(#glow)"/><text x="774" y="317" text-anchor="middle" font-size="18" font-weight="700" fill="#fff">Cola desatendida</text><path d="M886 311 h28" stroke="rgba(196,181,253,0.55)" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/><rect x="920.0" y="288" width="128" height="46" rx="23" fill="#1c1640" stroke="rgba(196,181,253,0.45)"/><text x="984" y="317" text-anchor="middle" font-size="18" font-weight="500" fill="#ddd6fe">Revisión</text>
+</g>
+</svg>

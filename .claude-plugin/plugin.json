@@ -1,0 +1,10 @@
+{
+  "name": "unattended-dev",
+  "version": "8.1.1",
+  "description": "Turns an idea into a project that builds itself: interview, plan, team, phase zero and a background launch, with whatever agents and models you have installed. Formerly modo-desatendido",
+  "author": { "name": "Aresdgi" },
+  "homepage": "https://github.com/Aresdgi/unattended-dev",
+  "repository": "https://github.com/Aresdgi/unattended-dev",
+  "license": "MIT",
+  "keywords": ["orchestration", "unattended", "orca", "opencode", "codex", "desatendido"]
+}

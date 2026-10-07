@@ -1,0 +1,12 @@
+{
+  "name": "unattended-dev",
+  "description": "unattended-dev: an agent skill that turns an idea into a project that builds itself",
+  "owner": { "name": "Aresdgi", "url": "https://github.com/Aresdgi" },
+  "plugins": [
+    {
+      "name": "unattended-dev",
+      "source": ".",
+      "description": "Interview, plan, team, phase zero and background launch so a project builds itself with the agents and models you have (Claude Code, Codex, opencode or others, with or without Orca). Formerly modo-desatendido"
+    }
+  ]
+}

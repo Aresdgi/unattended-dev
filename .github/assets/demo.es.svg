@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 666" width="920" height="666" role="img" aria-label="Sesión de ejemplo: entrevista, fase cero, lanzamiento en segundo plano y una cola de cinco tareas terminada">
+<title>Sesión de ejemplo con unattended-dev</title>
+<style>
+  text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; font-size: 16px; white-space: pre; }
+  @keyframes a1{0%,0.87%{opacity:0} 1.96%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a1{animation:a1 23.0s linear infinite}
+  @keyframes a2{0%,2.61%{transform:translateX(0)} 11.30%,100%{transform:translateX(398px)}} .a2{animation:a2 23.0s steps(41,end) infinite}
+  @keyframes a3{0%,0.87%{opacity:0} 1.96%,12.61%{opacity:1} 13.48%,100%{opacity:0}} .a3{animation:a3 23.0s linear infinite}
+  @keyframes a4{0%,13.04%{opacity:0} 14.13%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a4{animation:a4 23.0s linear infinite}
+  @keyframes a5{0%,15.22%{opacity:0} 16.30%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a5{animation:a5 23.0s linear infinite}
+  @keyframes a6{0%,17.39%{opacity:0} 18.48%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a6{animation:a6 23.0s linear infinite}
+  @keyframes a7{0%,19.57%{opacity:0} 20.65%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a7{animation:a7 23.0s linear infinite}
+  @keyframes a8{0%,21.74%{opacity:0} 22.83%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a8{animation:a8 23.0s linear infinite}
+  @keyframes a9{0%,24.78%{opacity:0} 25.87%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a9{animation:a9 23.0s linear infinite}
+  @keyframes a10{0%,27.83%{opacity:0} 28.91%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a10{animation:a10 23.0s linear infinite}
+  @keyframes a11{0%,30.87%{opacity:0} 31.96%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a11{animation:a11 23.0s linear infinite}
+  @keyframes a12{0%,33.91%{opacity:0} 35.00%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a12{animation:a12 23.0s linear infinite}
+  @keyframes a13{0%,36.52%{opacity:0} 37.61%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a13{animation:a13 23.0s linear infinite}
+  @keyframes a14{0%,39.57%{opacity:0} 40.65%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a14{animation:a14 23.0s linear infinite}
+  @keyframes a15{0%,43.04%{opacity:0} 44.13%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a15{animation:a15 23.0s linear infinite}
+  @keyframes a16{0%,44.78%{opacity:0} 45.87%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a16{animation:a16 23.0s linear infinite}
+  @keyframes a17{0%,44.78%{opacity:0} 45.87%,46.52%{opacity:1} 47.39%,100%{opacity:0}} .a17{animation:a17 23.0s linear infinite}
+  @keyframes a18{0%,46.52%{opacity:0} 47.61%,50.43%{opacity:1} 51.30%,100%{opacity:0}} .a18{animation:a18 23.0s linear infinite}
+  @keyframes a19{0%,50.43%{opacity:0} 51.52%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a19{animation:a19 23.0s linear infinite}
+  @keyframes a20{0%,44.78%{opacity:0} 45.87%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a20{animation:a20 23.0s linear infinite}
+  @keyframes a21{0%,44.78%{opacity:0} 45.87%,51.09%{opacity:1} 51.96%,100%{opacity:0}} .a21{animation:a21 23.0s linear infinite}
+  @keyframes a22{0%,51.09%{opacity:0} 52.17%,55.00%{opacity:1} 55.87%,100%{opacity:0}} .a22{animation:a22 23.0s linear infinite}
+  @keyframes a23{0%,55.00%{opacity:0} 56.09%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a23{animation:a23 23.0s linear infinite}
+  @keyframes a24{0%,44.78%{opacity:0} 45.87%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a24{animation:a24 23.0s linear infinite}
+  @keyframes a25{0%,44.78%{opacity:0} 45.87%,55.65%{opacity:1} 56.52%,100%{opacity:0}} .a25{animation:a25 23.0s linear infinite}
+  @keyframes a26{0%,55.65%{opacity:0} 56.74%,62.61%{opacity:1} 63.48%,100%{opacity:0}} .a26{animation:a26 23.0s linear infinite}
+  @keyframes a27{0%,62.61%{opacity:0} 63.70%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a27{animation:a27 23.0s linear infinite}
+  @keyframes a28{0%,44.78%{opacity:0} 45.87%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a28{animation:a28 23.0s linear infinite}
+  @keyframes a29{0%,44.78%{opacity:0} 45.87%,63.26%{opacity:1} 64.13%,100%{opacity:0}} .a29{animation:a29 23.0s linear infinite}
+  @keyframes a30{0%,63.26%{opacity:0} 64.35%,67.17%{opacity:1} 68.04%,100%{opacity:0}} .a30{animation:a30 23.0s linear infinite}
+  @keyframes a31{0%,67.17%{opacity:0} 68.26%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a31{animation:a31 23.0s linear infinite}
+  @keyframes a32{0%,44.78%{opacity:0} 45.87%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a32{animation:a32 23.0s linear infinite}
+  @keyframes a33{0%,44.78%{opacity:0} 45.87%,67.83%{opacity:1} 68.70%,100%{opacity:0}} .a33{animation:a33 23.0s linear infinite}
+  @keyframes a34{0%,67.83%{opacity:0} 68.91%,71.74%{opacity:1} 72.61%,100%{opacity:0}} .a34{animation:a34 23.0s linear infinite}
+  @keyframes a35{0%,71.74%{opacity:0} 72.83%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a35{animation:a35 23.0s linear infinite}
+  @keyframes a36{0%,73.70%{opacity:0} 74.78%,96.52%{opacity:1} 98.70%,100%{opacity:0}} .a36{animation:a36 23.0s linear infinite}
+  @media (prefers-reduced-motion: reduce) { g { animation: none !important; } .tmp { display: none; } }
+</style>
+<defs><clipPath id="ventana"><rect x="9" y="45" width="902" height="608"/></clipPath>
+<filter id="sombra" x="-10%" y="-10%" width="120%" height="130%">
+  <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000" flood-opacity=".35"/></filter></defs>
+<rect x="8" y="4" width="904" height="650" rx="14" fill="#0d1117" filter="url(#sombra)"/>
+<rect x="8" y="4" width="904" height="650" rx="14" fill="#0d1117" stroke="#30363d"/>
+<path d="M8 18 a14 14 0 0 1 14 -14 h876 a14 14 0 0 1 14 14 v26 h-904 z" fill="#161b22"/>
+<line x1="8" y1="44" x2="912" y2="44" stroke="#30363d"/>
+<circle cx="34" cy="24" r="6.5" fill="#ff5f57"/><circle cx="56" cy="24" r="6.5" fill="#febc2e"/><circle cx="78" cy="24" r="6.5" fill="#28c840"/>
+<text x="460.0" y="29" text-anchor="middle" fill="#8b93a7" style="font-size:14px">~/mi-proyecto</text>
+<g class="a1"><text x="32.0" y="92" fill="#c4b5fd" font-weight="700">❯</text><text x="51.2" y="92" fill="#e5e7eb">quiero hacer una CLI que valide DNI y NIE</text></g>
+<g clip-path="url(#ventana)" class="tmp"><g class="a2"><rect x="50" y="73" width="428" height="26" fill="#0d1117"/><rect class="a3" x="51" y="75" width="9" height="21" fill="#c4b5fd"/></g></g>
+<g class="a4"><text x="32.0" y="129" fill="#c4b5fd">●</text><text x="51.2" y="129" fill="#c4b5fd" font-weight="700">unattended-dev</text><text x="195.2" y="129" fill="#8b93a7">· entrevista</text></g>
+<g class="a5"><text x="51.2" y="156" fill="#7dd3fc" font-weight="700">?</text><text x="70.4" y="156" fill="#e5e7eb">¿Solo validar o también calcular la letra?</text></g>
+<g class="a6"><text x="70.4" y="183" fill="#4ade80" font-weight="700">›</text><text x="89.6" y="183" fill="#4ade80">Las dos</text><text x="166.4" y="183" fill="#8b93a7">(recomendado)</text></g>
+<g class="a7"><text x="51.2" y="210" fill="#7dd3fc" font-weight="700">?</text><text x="70.4" y="210" fill="#e5e7eb">¿Stack?</text></g>
+<g class="a8"><text x="70.4" y="237" fill="#4ade80" font-weight="700">›</text><text x="89.6" y="237" fill="#4ade80">TypeScript + Vitest</text><text x="281.6" y="237" fill="#8b93a7">(por defecto)</text></g>
+<g class="a9"><text x="32.0" y="270" fill="#c4b5fd">●</text><text x="51.2" y="270" fill="#e5e7eb">Modo rápido: 5 tareas, nada arriesgado. ¿Lo armo así?</text></g>
+<g class="a10"><text x="32.0" y="297" fill="#c4b5fd" font-weight="700">❯</text><text x="51.2" y="297" fill="#e5e7eb">sí</text></g>
+<g class="a11"><text x="32.0" y="330" fill="#c4b5fd">●</text><text x="51.2" y="330" fill="#e5e7eb" font-weight="700">Fase cero</text><text x="156.8" y="330" fill="#4ade80">✓ gate</text><text x="233.6" y="330" fill="#4ade80">✓ guardia</text><text x="339.2" y="330" fill="#4ade80">✓ 5 tests en skip</text><text x="521.6" y="330" fill="#4ade80">✓ humo 3/3</text></g>
+<g class="a12"><text x="32.0" y="357" fill="#c4b5fd">●</text><text x="51.2" y="357" fill="#e5e7eb">¿Lo lanzo yo?</text></g>
+<g class="a13"><text x="32.0" y="384" fill="#c4b5fd" font-weight="700">❯</text><text x="51.2" y="384" fill="#e5e7eb">sí, en segundo plano</text></g>
+<g class="a14"><text x="32.0" y="411" fill="#c4b5fd">●</text><text x="51.2" y="411" fill="#4ade80" font-weight="700">Prueba en seco ✓</text><text x="214.4" y="411" fill="#e5e7eb">· lanzado con claude --bg</text><text x="464.0" y="411" fill="#8b93a7">· Mac despierto</text></g>
+<g class="a15"><line x1="32" y1="444" x2="888" y2="444" stroke="#30363d" stroke-dasharray="4 4"/><rect x="340.0" y="430" width="240" height="28" fill="#0d1117"/><text x="460.0" y="450" text-anchor="middle" fill="#8b93a7">STATUS.md · 07:42</text></g>
+<g class="a16"><text x="51.2" y="485" fill="#8b93a7">T01</text><text x="108.8" y="485" fill="#e5e7eb">validarDni</text></g>
+<g class="a17 tmp"><text x="310.4" y="485" fill="#8b93a7">PENDING</text></g>
+<g class="a18 tmp"><text x="310.4" y="485" fill="#fbbf24" font-weight="700">IN PROGRESS</text></g>
+<g class="a19"><text x="310.4" y="485" fill="#4ade80" font-weight="700">DONE</text><text x="368.0" y="485" fill="#8b93a7">QA PASS</text></g>
+<g class="a20"><text x="51.2" y="512" fill="#8b93a7">T02</text><text x="108.8" y="512" fill="#e5e7eb">validarNie</text></g>
+<g class="a21 tmp"><text x="310.4" y="512" fill="#8b93a7">PENDING</text></g>
+<g class="a22 tmp"><text x="310.4" y="512" fill="#fbbf24" font-weight="700">IN PROGRESS</text></g>
+<g class="a23"><text x="310.4" y="512" fill="#4ade80" font-weight="700">DONE</text><text x="368.0" y="512" fill="#8b93a7">QA PASS</text></g>
+<g class="a24"><text x="51.2" y="539" fill="#8b93a7">T03</text><text x="108.8" y="539" fill="#e5e7eb">calcularLetra</text></g>
+<g class="a25 tmp"><text x="310.4" y="539" fill="#8b93a7">PENDING</text></g>
+<g class="a26 tmp"><text x="310.4" y="539" fill="#fbbf24" font-weight="700">IN PROGRESS</text></g>
+<g class="a27"><text x="310.4" y="539" fill="#4ade80" font-weight="700">DONE</text><text x="368.0" y="539" fill="#f87171">QA FAIL → arreglo → PASS</text></g>
+<g class="a28"><text x="51.2" y="566" fill="#8b93a7">T04</text><text x="108.8" y="566" fill="#e5e7eb">cli</text></g>
+<g class="a29 tmp"><text x="310.4" y="566" fill="#8b93a7">PENDING</text></g>
+<g class="a30 tmp"><text x="310.4" y="566" fill="#fbbf24" font-weight="700">IN PROGRESS</text></g>
+<g class="a31"><text x="310.4" y="566" fill="#4ade80" font-weight="700">DONE</text><text x="368.0" y="566" fill="#8b93a7">QA PASS</text></g>
+<g class="a32"><text x="51.2" y="593" fill="#8b93a7">T05</text><text x="108.8" y="593" fill="#e5e7eb">mensajes de error</text></g>
+<g class="a33 tmp"><text x="310.4" y="593" fill="#8b93a7">PENDING</text></g>
+<g class="a34 tmp"><text x="310.4" y="593" fill="#fbbf24" font-weight="700">IN PROGRESS</text></g>
+<g class="a35"><text x="310.4" y="593" fill="#4ade80" font-weight="700">DONE</text><text x="368.0" y="593" fill="#8b93a7">QA PASS</text></g>
+<g class="a36"><text x="32.0" y="630" fill="#e5e7eb" font-weight="700">Progreso:</text><text x="128.0" y="630" fill="#4ade80" font-weight="700">5 DONE</text><text x="195.2" y="630" fill="#8b93a7">· 0 BLOCKED · 0 PENDING</text><text x="435.2" y="630" fill="#4ade80" font-weight="700">gate ✓</text></g>
+</svg>

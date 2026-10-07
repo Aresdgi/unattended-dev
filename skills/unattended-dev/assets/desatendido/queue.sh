@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.2: deterministic queue state. The orchestrator and
+# unattended-dev v8.3: deterministic queue state. The orchestrator and
 # bucle.sh call this instead of deciding by reading the table themselves.
 #
 # Reads and writes the queue table in STATUS.md (or $STATUS_FILE):
@@ -8,24 +8,32 @@
 # States: PENDING, IN PROGRESS, DONE, BLOCKED. "Depends on" is "none" or a
 # comma-separated list of task ids.
 #
+# Every state change is committed at once, so a stash or a crash can never
+# bring back an old state. Closing a task is one atomic command.
+#
 # Usage (from the project root):
-#   queue.sh next          Print the next PENDING task whose dependencies are
-#                          all DONE. Marks as BLOCKED any PENDING task that
-#                          depends on a BLOCKED one. Exit 0 found, 1 queue
-#                          finished, 2 tasks left but none can start.
-#   queue.sh recover       Every IN PROGRESS task was cut off: stash pending
-#                          changes as "<task> interrupted" and set it PENDING.
-#   queue.sh start <task>  Set it IN PROGRESS and remove the skip from its
-#                          test, so the worker never has to touch tests.
-#   queue.sh set <task> <PENDING|IN PROGRESS|DONE|BLOCKED>
-#   queue.sh tests         Print the tests of IN PROGRESS and DONE tasks (for
-#                          guardia-tests.sh: they must have no skip).
-#   queue.sh state <task>  Print the state of one task.
-#   queue.sh summary       One line: "Progress: X DONE, Y BLOCKED, Z PENDING".
+#   queue.sh next                 Print the next PENDING task whose dependencies
+#                                 are all DONE (BLOCKED spreads to the tasks that
+#                                 depend on it). Exit 0 found, 1 queue finished,
+#                                 2 tasks left but none can start.
+#   queue.sh start <task>         IN PROGRESS (committed) and remove the skip from
+#                                 its test (not committed: it is part of the task).
+#   queue.sh done <task> <msg>    DONE and commit everything as "<task>: <msg>".
+#   queue.sh block <task> <why>   Stash the task's changes, then BLOCKED (committed).
+#   queue.sh recover              Every IN PROGRESS task was cut off: stash its
+#                                 changes as "<task> interrupted", then PENDING.
+#   queue.sh set <task> <state>   Low level: change and commit one state.
+#   queue.sh state <task>         Print the state of one task.
+#   queue.sh tests                Tests of IN PROGRESS and DONE tasks (for
+#                                 guardia-tests.sh: they must have no skip).
+#   queue.sh summary              "Progress: X DONE, Y BLOCKED, Z PENDING".
+#
+# Exit 3: wrong usage or state. Exit 4: a git step failed; nothing was marked.
 set -u
 STATUS="${STATUS_FILE:-STATUS.md}"
-case "${1:-}" in next|recover|start|set|state|tests|summary) ;; *) sed -n "2,28p" "$0"; exit 3;; esac
+case "${1:-}" in next|start|done|block|recover|set|state|tests|summary) ;; *) sed -n "2,31p" "$0"; exit 3;; esac
 [ -f "$STATUS" ] || { echo "queue: $STATUS not found" >&2; exit 3; }
+git rev-parse -q --verify HEAD >/dev/null 2>&1 || { echo "queue: needs a git repo with at least one commit" >&2; exit 3; }
 
 # Rows of the queue table as "id<TAB>deps<TAB>test<TAB>state".
 rows() {
@@ -38,7 +46,7 @@ rows() {
 
 state_of() { rows | awk -F'\t' -v t="$1" '$1 == t { print $4 }'; }
 
-set_state() {
+write_state() { # change the state in the file only
   local task="$1" new="$2" tmp
   case "$new" in PENDING|"IN PROGRESS"|DONE|BLOCKED) ;; *) echo "queue: invalid state: $new" >&2; return 3;; esac
   [ -n "$(state_of "$task")" ] || { echo "queue: unknown task: $task" >&2; return 3; }
@@ -50,8 +58,29 @@ set_state() {
   rm -f "$tmp"
 }
 
-# Remove skip marks from one test file (same marks guardia-tests.sh knows).
-unskip() {
+commit_status() { # commit STATUS.md alone, if it changed
+  git diff --quiet HEAD -- "$STATUS" 2>/dev/null && return 0
+  git add -- "$STATUS" && git commit -q -m "$1" -- "$STATUS" \
+    || { echo "queue: could not commit $STATUS" >&2; return 4; }
+}
+
+set_state() { # change the state and commit it; on failure, put it back
+  local task="$1" new="$2" old
+  old=$(state_of "$task")
+  write_state "$task" "$new" || return $?
+  commit_status "queue: $task $new" || { write_state "$task" "$old"; git checkout -q HEAD -- "$STATUS" 2>/dev/null; return 4; }
+}
+
+stash_work() { # stash everything except STATUS.md; fail loudly
+  local msg="$1"
+  commit_status "queue: save $STATUS before stash" || return 4
+  [ -z "$(git status --porcelain 2>/dev/null)" ] && return 0
+  git stash push -u -q -m "$msg" || { echo "queue: git stash failed; nothing was marked" >&2; return 4; }
+  [ -z "$(git status --porcelain 2>/dev/null)" ] || { echo "queue: changes left after stash; nothing was marked" >&2; return 4; }
+  echo "queue: changes saved in stash \"$msg\""
+}
+
+unskip() { # remove skip marks from one test file (the marks guardia-tests.sh knows)
   local f="$1" tmp
   [ -f "$f" ] || { echo "queue: test not found: $f" >&2; return 3; }
   tmp=$(mktemp)
@@ -64,10 +93,15 @@ unskip() {
   rm -f "$tmp"
 }
 
-cmd="${1:-}"; shift || true
+need_state() { # need_state <task> <state>
+  local s; s=$(state_of "$1")
+  [ -n "$s" ] || { echo "queue: unknown task: $1" >&2; exit 3; }
+  [ "$s" = "$2" ] || { echo "queue: $1 is $s, not $2" >&2; exit 3; }
+}
+
+cmd="$1"; shift
 case "$cmd" in
   next)
-    # Propagate BLOCKED to PENDING tasks that depend on a BLOCKED task.
     changed=1
     while [ "$changed" = 1 ]; do
       changed=0
@@ -76,7 +110,8 @@ case "$cmd" in
         deps=$(rows | awk -F'\t' -v t="$t" '$1 == t { print $2 }' | tr ',' ' ')
         for d in $deps; do
           if echo "$blocked" | grep -qx "$d"; then
-            set_state "$t" BLOCKED; echo "queue: $t BLOCKED because $d is BLOCKED" >&2; changed=1; break
+            set_state "$t" BLOCKED || exit 4
+            echo "queue: $t BLOCKED because $d is BLOCKED" >&2; changed=1; break
           fi
         done
       done
@@ -94,19 +129,32 @@ case "$cmd" in
       echo "queue: tasks left but none can start (check dependencies or IN PROGRESS)" >&2; exit 2
     fi
     exit 1 ;;
+  start)
+    task="${1:?queue start <task>}"; need_state "$task" PENDING
+    test_file=$(rows | awk -F'\t' -v t="$task" '$1 == t { print $3 }')
+    set_state "$task" "IN PROGRESS" || exit 4
+    if [ -n "$test_file" ] && [ "$test_file" != none ]; then unskip "$test_file" || exit 3; echo "$test_file"; fi ;;
+  done)
+    task="${1:?queue done <task> <message>}"; shift; msg="${*:-done}"
+    need_state "$task" "IN PROGRESS"
+    write_state "$task" DONE || exit 3
+    if ! { git add -A && git commit -q -m "$task: $msg"; }; then
+      write_state "$task" "IN PROGRESS"; git reset -q -- "$STATUS" 2>/dev/null
+      echo "queue: commit failed; $task is still IN PROGRESS" >&2; exit 4
+    fi
+    echo "queue: $task DONE" ;;
+  block)
+    task="${1:?queue block <task> <reason>}"; shift; why="${*:-no reason given}"
+    need_state "$task" "IN PROGRESS"
+    stash_work "$task blocked: $why" || exit 4
+    set_state "$task" BLOCKED || exit 4
+    echo "queue: $task BLOCKED ($why)" ;;
   recover)
     for t in $(rows | awk -F'\t' '$4 == "IN PROGRESS" { print $1 }'); do
-      if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
-        git stash push -u -q -m "$t interrupted" && echo "queue: $t interrupted, changes saved in stash \"$t interrupted\""
-      fi
-      set_state "$t" PENDING && echo "queue: $t back to PENDING"
+      stash_work "$t interrupted" || exit 4
+      set_state "$t" PENDING || exit 4
+      echo "queue: $t back to PENDING"
     done ;;
-  start)
-    task="${1:?queue start <task>}"
-    [ "$(state_of "$task")" = PENDING ] || { echo "queue: $task is not PENDING" >&2; exit 3; }
-    test_file=$(rows | awk -F'\t' -v t="$task" '$1 == t { print $3 }')
-    set_state "$task" "IN PROGRESS"
-    if [ -n "$test_file" ] && [ "$test_file" != none ]; then unskip "$test_file" || exit 3; echo "$test_file"; fi ;;
   set)
     set_state "${1:?queue set <task> <state>}" "${*:2}" ;;
   state)
@@ -115,6 +163,4 @@ case "$cmd" in
     rows | awk -F'\t' '($4 == "IN PROGRESS" || $4 == "DONE") && $3 != "" && $3 != "none" { print $3 }' ;;
   summary)
     rows | awk -F'\t' '{ n[$4]++ } END { printf "Progress: %d DONE, %d BLOCKED, %d PENDING\n", n["DONE"], n["BLOCKED"], n["PENDING"] + n["IN PROGRESS"] }' ;;
-  *)
-    sed -n "2,27p" "$0"; exit 3 ;;
 esac

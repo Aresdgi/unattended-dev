@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/version-8.2.0-7c3aed?style=for-the-badge" alt="version 8.2.0"></a>
+  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/version-8.3.0-7c3aed?style=for-the-badge" alt="version 8.3.0"></a>
   <img src="https://img.shields.io/badge/status-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="script tests"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="MIT license"></a>
@@ -288,7 +288,9 @@ tests, or marks a task done while its test is still skipped.
 
 Makes the **mechanical decisions** in code, not in the model: the next
 task, dependencies, BLOCKED propagation, removing the skip when a task
-starts and **recovering** a task that was cut off.
+starts, **closing** a task in one atomic step and **recovering** a task
+that was cut off. Every state change is committed, so a stash can never
+undo it.
 
 </td>
 <td width="25%" valign="top">
@@ -310,7 +312,8 @@ or the hour limit is reached.
 # The queue: next task, start it (removes the skip of its test), finish it
 .desatendido/queue.sh next            # -> T01
 .desatendido/queue.sh start T01
-.desatendido/queue.sh set T01 DONE    # or BLOCKED
+.desatendido/queue.sh done T01 "summary"    # DONE + commit, in one step
+.desatendido/queue.sh block T01 "reason"    # stash + BLOCKED, in one step
 
 # A worker, with its allowed files and the tests read-only
 .desatendido/lanzar-worker.sh implements T01 \
@@ -350,7 +353,8 @@ bash tests/run.sh
 
 It covers the cheats found in review (an assertion deleted together with a
 skip, a forbidden file changed and committed, a worker killed by a signal)
-and queue recovery when a session is cut off.
+queue recovery when a session is cut off, and the queue state surviving a
+stash or a git step that fails.
 
 ## 📁 What it leaves in your project
 

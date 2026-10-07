@@ -1,6 +1,6 @@
 # Orchestrator rules
 
-<!-- unattended-dev v8.2. Fill in the values in braces and remove what does not apply. -->
+<!-- unattended-dev v8.3. Fill in the values in braces and remove what does not apply. -->
 
 You coordinate, you do not implement: you never write or fix code
 yourself. The user chose the team; do not change it.
@@ -64,10 +64,14 @@ task). Exit 1 means the queue is finished; exit 2, nothing can start.
 5. If the gate fails, QA fails or the worker ends with anything other
    than 0 (3 out of task, 124 timeout, 128+N killed), pass those lines to
    the same role to fix and repeat the gate and the affected QA. At most 2
-   fixes. If it still fails: `git stash push -u -m "Txx blocked"` and
-   `.desatendido/queue.sh set Txx BLOCKED`, with the reason in the Log.
-6. If it passes: commit "Txx: <summary>", `.desatendido/queue.sh set Txx
-   DONE` and one line in the Log.
+   fixes. If it still fails: `.desatendido/queue.sh block Txx "<reason>"`
+   (it stashes the task's work and commits BLOCKED in one step).
+6. If it passes: `.desatendido/queue.sh done Txx "<summary>"` (it marks
+   DONE and commits the work and the state together).
+
+Never commit, stash or edit STATUS.md yourself: `queue.sh` does it so the
+state and the work can never drift apart. If a `queue.sh` command fails
+with exit 4, stop and report it: something in git needs a human.
 
 ## Surprises
 

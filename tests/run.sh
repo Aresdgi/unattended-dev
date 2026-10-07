@@ -129,6 +129,48 @@ check "after recover T01 is PENDING" 0 $Q state T01; check_out "T01 PENDING" "PE
 check "the half-done file is gone from the tree" 1 test -f src/half.ts
 check "summary counts states" 0 $Q summary; check_out "summary line" "Progress:"
 
+echo "== queue.sh: state survives stash and failures"
+new_repo state
+cat > STATUS.md <<'EOF2'
+| Task | Title | Depends on | Test | State |
+| --- | --- | --- | --- | --- |
+| T01 | a | none | tests/acceptance/T01.test.ts | PENDING |
+| T02 | b | T01 | tests/acceptance/T02.test.ts | PENDING |
+| T03 | c | T02 | tests/acceptance/T03.test.ts | PENDING |
+EOF2
+for t in T01 T02 T03; do printf "describe.skip('$t', () => {})\n" > tests/acceptance/$t.test.ts; done
+git add -A; git commit -qm start
+Q=".desatendido/queue.sh"
+# Old template order: commit the work first, then mark DONE.
+$Q start T01 >/dev/null; echo impl > src/T01.ts; git add -A; git commit -qm "T01: done"
+check "set DONE after a manual commit" 0 $Q set T01 DONE
+$Q start T02 >/dev/null; echo half > src/T02.ts
+check "block stashes the task's work" 0 $Q block T02 "tests keep failing"
+check "a blocked T02 does not bring T01 back to IN PROGRESS" 0 $Q state T01; check_out "T01 still DONE" "DONE"
+check "T02 is BLOCKED" 0 $Q state T02; check_out "T02 BLOCKED" "BLOCKED"
+check "the stash has T02's work" 0 bash -c 'git stash list | grep -q "T02 blocked"'
+check "the tree is clean after block" 0 bash -c '[ -z "$(git status --porcelain)" ]'
+$Q set T02 PENDING >/dev/null; $Q set T03 PENDING >/dev/null
+# done is atomic: state and work in one commit.
+$Q start T02 >/dev/null; echo impl > src/T02.ts
+check "done commits state and work together" 0 $Q done T02 "implemented"
+check "T02 is DONE in the last commit" 0 bash -c 'git show HEAD:STATUS.md | grep -q "| T02 | b | T01 | tests/acceptance/T02.test.ts | DONE |"'
+check "the last commit has T02's work" 0 bash -c 'git show --name-only HEAD | grep -q src/T02.ts'
+check "done refuses a task that is not IN PROGRESS" 3 $Q done T03 "nothing"
+# Recover after DONE tasks keeps them DONE and the queue can go on.
+$Q start T03 >/dev/null; echo half > src/T03.ts
+check "recover after DONE tasks" 0 $Q recover
+check "T01 and T02 stay DONE" 0 bash -c '[ "$('$Q' state T01)" = DONE ] && [ "$('$Q' state T02)" = DONE ]'
+check "next gives T03 again, not a stuck queue" 0 $Q next; check_out "it is T03" "T03"
+# A stash that cannot be made stops everything and marks nothing.
+$Q start T03 >/dev/null; echo half > src/T03.ts
+touch .git/index.lock
+check "recover fails with 4 when git stash fails" 4 $Q recover
+check "the task stays IN PROGRESS" 0 $Q state T03; check_out "T03 still IN PROGRESS" "IN PROGRESS"
+check "its work is still in the tree" 0 test -f src/T03.ts
+check "block also fails with 4" 4 $Q block T03 "x"
+rm -f .git/index.lock
+
 echo "== bucle.sh"
 new_repo loop
 echo rules > ORQUESTADOR.md
@@ -146,7 +188,7 @@ t=$(echo "$1" | sed -n 's/^Do ONLY task \([A-Za-z0-9]*\),.*/\1/p')
 .desatendido/queue.sh start "$t" >/dev/null || exit 1
 echo done > "src/$t.ts"
 .desatendido/guardia-tests.sh start tests/acceptance $(.desatendido/queue.sh tests) >/dev/null || exit 1
-.desatendido/queue.sh set "$t" DONE && git add -A && git commit -qm "$t: done" && echo "did $t"
+.desatendido/queue.sh done "$t" "done" && echo "did $t"
 EOF
 chmod +x orch.sh
 perl -pi -e 's/ORCHESTRATOR_CMD=\(\{ORCHESTRATOR_CMD\}\)/ORCHESTRATOR_CMD=(.\/orch.sh)/' .desatendido/bucle.sh
@@ -161,6 +203,13 @@ check "a round that leaves the task unfinished stops with 1" 1 .desatendido/bucl
 touch AGENT_STOP
 check "AGENT_STOP stops the loop" 0 .desatendido/bucle.sh
 check_out "it says why" "AGENT_STOP"
+rm -f AGENT_STOP
+git checkout -q -- orch.sh
+.desatendido/queue.sh set T01 "IN PROGRESS" >/dev/null; mkdir -p src; echo half > src/T01.ts
+touch .git/index.lock
+check "the loop stops if recover fails" 1 .desatendido/bucle.sh
+check_out "it says recover failed" "recover failed"
+rm -f .git/index.lock
 
 echo
 echo "$pass passed, $fail failed"

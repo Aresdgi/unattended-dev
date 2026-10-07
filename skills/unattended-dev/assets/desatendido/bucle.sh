@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.2: external loop for orchestrators with no native goal.
+# unattended-dev v8.3: external loop for orchestrators with no native goal.
 # Relaunches the orchestrator, one task per round, with a clean context.
 # Which task comes next is decided by queue.sh, not by the model.
 #
@@ -32,8 +32,11 @@ trap 'log "INTERRUPTED: Ctrl+C"; exit 130' INT
 case "${ORCHESTRATOR_CMD[*]}" in *"{ORCHESTRATOR_CMD}"*) log "WILL NOT START: fill in ORCHESTRATOR_CMD"; exit 1;; esac
 
 # A task left IN PROGRESS was cut off by a previous session: save its
-# changes and put it back to PENDING before anything else.
-"$QUEUE" recover 2>&1 | tee -a "$LOG"
+# changes and put it back to PENDING before anything else. If that fails
+# (a stash that cannot be made), stop: going on would mix two tasks.
+"$QUEUE" recover > logs/.recover 2>&1; recover_status=$?
+cat logs/.recover | tee -a "$LOG"
+[ "$recover_status" = 0 ] || { log "STOPPED: queue.sh recover failed (exit $recover_status)"; exit 1; }
 
 start=$(date +%s)
 for ((r = 1; r <= MAX_ROUNDS; r++)); do
@@ -52,9 +55,9 @@ for ((r = 1; r <= MAX_ROUNDS; r++)); do
 
   log "ROUND $r: $task"
   prompt="You are the orchestrator. Read ORQUESTADOR.md, STATUS.md and docs/SPEC.md.
-Do ONLY task $task, following ORQUESTADOR.md from start to end (start it with
-$QUEUE start $task, and end with the commit and DONE, or the stash and
-BLOCKED), and finish."
+Do ONLY task $task, following ORQUESTADOR.md from start to end: start it with
+$QUEUE start $task and close it with $QUEUE done $task \"<summary>\" or
+$QUEUE block $task \"<reason>\". Then finish."
   "${ORCHESTRATOR_CMD[@]}" "$prompt" 2>&1 | tee -a "$LOG"
 
   case "$("$QUEUE" state "$task")" in

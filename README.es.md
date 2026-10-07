@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/versión-8.2.0-7c3aed?style=for-the-badge" alt="versión 8.2.0"></a>
+  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/versión-8.3.0-7c3aed?style=for-the-badge" alt="versión 8.3.0"></a>
   <img src="https://img.shields.io/badge/estado-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="tests de los scripts"></a>
   <a href="#licencia"><img src="https://img.shields.io/badge/licencia-MIT-22c55e?style=for-the-badge" alt="licencia MIT"></a>
@@ -289,7 +289,9 @@ da por hecha una tarea que aún tiene su test en skip.
 
 Toma las **decisiones mecánicas** con código, no con el modelo: la
 siguiente tarea, las dependencias, propagar los BLOCKED, quitar el skip al
-empezar una tarea y **recuperar** una tarea que se cortó.
+empezar una tarea, **cerrar** una tarea en un solo paso atómico y
+**recuperar** una tarea que se cortó. Cada cambio de estado lleva su
+commit, así que un stash nunca puede deshacerlo.
 
 </td>
 <td width="25%" valign="top">
@@ -311,7 +313,8 @@ vaciar la cola o llegar al límite de horas.
 # La cola: siguiente tarea, empezarla (quita el skip de su test) y cerrarla
 .desatendido/queue.sh next            # -> T01
 .desatendido/queue.sh start T01
-.desatendido/queue.sh set T01 DONE    # o BLOCKED
+.desatendido/queue.sh done T01 "resumen"   # DONE + commit, de una vez
+.desatendido/queue.sh block T01 "motivo"   # stash + BLOCKED, de una vez
 
 # Un worker, con sus archivos permitidos y los tests en solo lectura
 .desatendido/lanzar-worker.sh implements T01 \
@@ -352,7 +355,8 @@ bash tests/run.sh
 
 Cubre las trampas encontradas en la revisión (una comprobación borrada junto
 a un skip, un archivo prohibido modificado y con commit, un worker matado
-por una señal) y la recuperación de la cola cuando se corta una sesión.
+por una señal) la recuperación de la cola cuando se corta una sesión, y que el estado de la
+cola sobreviva a un stash o a un paso de git que falla.
 
 ## 📁 Lo que deja en tu proyecto
 

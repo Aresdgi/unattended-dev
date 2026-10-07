@@ -52,6 +52,13 @@
 npx skills add Aresdgi/unattended-dev -g -a codex opencode
 ```
 
+**Or let your agent do it.** Paste this into Claude Code, Codex, opencode or
+any agent with a terminal:
+
+```text
+Install the unattended-dev skill from https://github.com/Aresdgi/unattended-dev
+```
+
 Then just say: *"I want to build…"*. More options in [Installation](#-installation).
 
 ## 💜 Why it's good
@@ -379,6 +386,37 @@ ln -s ~/unattended-dev/skills/unattended-dev ~/.agents/skills/unattended-dev
 To update: `git -C ~/unattended-dev pull`.
 
 </details>
+
+### 🤖 For agents
+
+If a user asked you to install this skill, follow these steps for the tool
+you are running in. Ask before running anything if your permissions require
+it.
+
+1. **Claude Code**: run in the shell
+   ```sh
+   claude plugin marketplace add Aresdgi/unattended-dev
+   claude plugin install unattended-dev@unattended-dev
+   ```
+   Then tell the user to run `/reload-plugins` or start a new session.
+2. **Codex, opencode or another agent, with Node.js available**: run
+   ```sh
+   npx skills add Aresdgi/unattended-dev -g -a <agent> -y
+   ```
+   with `<agent>` being `codex`, `opencode` or your own id (`-a '*'` for
+   every supported agent).
+3. **Without Node.js**: clone the repo and link the skill folder into the
+   skills directory your tool reads (`~/.agents/skills` for Codex and
+   opencode, `~/.claude/skills` for Claude Code):
+   ```sh
+   git clone https://github.com/Aresdgi/unattended-dev.git ~/unattended-dev
+   mkdir -p ~/.agents/skills
+   ln -s ~/unattended-dev/skills/unattended-dev ~/.agents/skills/unattended-dev
+   ```
+
+Check that `SKILL.md` is in the installed folder, then tell the user it is
+ready and that a new session picks it up. It triggers with "I want to
+build…" or "unattended mode".
 
 > [!TIP]
 > Works in any agent that reads `SKILL.md`. If your tool has questions with

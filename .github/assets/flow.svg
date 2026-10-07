@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" width="920" height="560" role="img" aria-label="How it works: interview, plan and team, phase zero with you; the queue without you; then the review">
+<title>How it works: interview, plan and team, phase zero with you; the queue without you; then the review</title>
+<style>text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }</style>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#060914"/><stop offset=".55" stop-color="#141038"/><stop offset="1" stop-color="#2b1458"/>
+  </linearGradient>
+  <marker id="m-text" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e5e7eb"/></marker>
+  <marker id="m-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a5adc0"/></marker>
+  <marker id="m-violet" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a78bfa"/></marker>
+  <marker id="m-violet2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b5cf6"/></marker>
+  <marker id="m-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4ade80"/></marker>
+  <marker id="m-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#fbbf24"/></marker>
+  <marker id="m-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+  <marker id="m-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7dd3fc"/></marker>
+</defs>
+<rect width="920" height="560" rx="28" fill="url(#bg)"/>
+<rect x="30" y="30" width="860" height="210" rx="22" fill="#a78bfa" fill-opacity=".05" stroke="#a78bfa" stroke-opacity=".55" stroke-width="2" stroke-dasharray="8 7"/>
+<text x="54" y="66" text-anchor="start" font-size="21" font-weight="700" fill="#a78bfa">WITH YOU</text>
+<rect x="60" y="100" width="250" height="104" rx="18" fill="#a78bfa" fill-opacity=".13" stroke="#a78bfa" stroke-width="2.5"/>
+<text x="185.0" y="146.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Interview</text>
+<text x="185.0" y="176.0" text-anchor="middle" font-size="19" fill="#a5adc0">only what it needs</text>
+<rect x="335" y="100" width="250" height="104" rx="18" fill="#a78bfa" fill-opacity=".13" stroke="#a78bfa" stroke-width="2.5"/>
+<text x="460.0" y="146.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Plan and team</text>
+<text x="460.0" y="176.0" text-anchor="middle" font-size="19" fill="#a5adc0">tasks and who does what</text>
+<rect x="610" y="100" width="250" height="104" rx="18" fill="#a78bfa" fill-opacity=".13" stroke="#a78bfa" stroke-width="2.5"/>
+<text x="735.0" y="146.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Phase zero</text>
+<text x="735.0" y="176.0" text-anchor="middle" font-size="19" fill="#a5adc0">base, tests, smoke</text>
+<path d="M312,152.0 L331,152.0" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#m-violet)"/>
+<path d="M587,152.0 L606,152.0" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#m-violet)"/>
+<rect x="30" y="320" width="400" height="210" rx="22" fill="#7dd3fc" fill-opacity=".05" stroke="#7dd3fc" stroke-opacity=".55" stroke-width="2" stroke-dasharray="8 7"/>
+<text x="54" y="356" text-anchor="start" font-size="21" font-weight="700" fill="#7dd3fc">WITHOUT YOU</text>
+<rect x="60" y="390" width="340" height="104" rx="18" fill="#7dd3fc" fill-opacity=".13" stroke="#7dd3fc" stroke-width="2.5"/>
+<text x="230.0" y="436.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Unattended queue</text>
+<text x="230.0" y="466.0" text-anchor="middle" font-size="19" fill="#a5adc0">one task after another</text>
+<path d="M735.0,206 L735.0,285 L230,285 L230,386" fill="none" stroke="#4ade80" stroke-width="2.5" marker-end="url(#m-green)"/>
+<text x="482.5" y="275" text-anchor="middle" font-size="19" font-weight="600" fill="#4ade80">shall I launch it? yes</text>
+<rect x="610" y="390" width="270" height="104" rx="18" fill="#a78bfa" fill-opacity=".13" stroke="#a78bfa" stroke-width="2.5"/>
+<text x="745.0" y="436.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Review</text>
+<text x="745.0" y="466.0" text-anchor="middle" font-size="19" fill="#a5adc0">queue, tests, gate, by hand</text>
+<path d="M402,442.0 L606,442.0" fill="none" stroke="#a5adc0" stroke-width="2.5" marker-end="url(#m-muted)"/>
+<text x="446" y="428.0" text-anchor="start" font-size="17" font-weight="600" fill="#a5adc0">“review the session”</text>
+</svg>

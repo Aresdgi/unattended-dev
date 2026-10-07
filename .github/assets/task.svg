@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 1010" width="920" height="1010" role="img" aria-label="Each task: queue.sh picks and starts it, a worker implements it, the gate and QA check it, and queue.sh closes it as DONE or BLOCKED">
+<title>Each task: queue.sh picks and starts it, a worker implements it, the gate and QA check it, and queue.sh closes it as DONE or BLOCKED</title>
+<style>text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }</style>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#060914"/><stop offset=".55" stop-color="#141038"/><stop offset="1" stop-color="#2b1458"/>
+  </linearGradient>
+  <marker id="m-text" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e5e7eb"/></marker>
+  <marker id="m-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a5adc0"/></marker>
+  <marker id="m-violet" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a78bfa"/></marker>
+  <marker id="m-violet2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b5cf6"/></marker>
+  <marker id="m-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4ade80"/></marker>
+  <marker id="m-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#fbbf24"/></marker>
+  <marker id="m-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+  <marker id="m-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7dd3fc"/></marker>
+</defs>
+<rect width="920" height="1010" rx="28" fill="url(#bg)"/>
+<rect x="70" y="40" width="400" height="100" rx="50.0" fill="#a78bfa" fill-opacity=".13" stroke="#a78bfa" stroke-width="2.5"/>
+<text x="270.0" y="84.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">queue.sh next</text>
+<text x="270.0" y="114.0" text-anchor="middle" font-size="19" fill="#a5adc0">which task is next</text>
+<rect x="70" y="200" width="400" height="100" rx="18" fill="#a78bfa" fill-opacity=".13" stroke="#a78bfa" stroke-width="2.5"/>
+<text x="270.0" y="244.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">queue.sh start</text>
+<text x="270.0" y="274.0" text-anchor="middle" font-size="19" fill="#a5adc0">IN PROGRESS · removes the skip</text>
+<rect x="70" y="360" width="400" height="100" rx="18" fill="#7dd3fc" fill-opacity=".13" stroke="#7dd3fc" stroke-width="2.5"/>
+<text x="270.0" y="404.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Worker</text>
+<text x="270.0" y="434.0" text-anchor="middle" font-size="19" fill="#a5adc0">only its files · tests read-only</text>
+<rect x="70" y="520" width="400" height="100" rx="18" fill="#fbbf24" fill-opacity=".13" stroke="#fbbf24" stroke-width="2.5"/>
+<text x="270.0" y="564.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Gate</text>
+<text x="270.0" y="594.0" text-anchor="middle" font-size="19" fill="#a5adc0">guard · tests · build</text>
+<rect x="70" y="680" width="400" height="100" rx="18" fill="#fbbf24" fill-opacity=".13" stroke="#fbbf24" stroke-width="2.5"/>
+<text x="270.0" y="724.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">QA</text>
+<text x="270.0" y="754.0" text-anchor="middle" font-size="19" fill="#a5adc0">another model, read-only</text>
+<rect x="70" y="840" width="400" height="100" rx="18" fill="#4ade80" fill-opacity=".13" stroke="#4ade80" stroke-width="2.5"/>
+<text x="270.0" y="884.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">queue.sh done</text>
+<text x="270.0" y="914.0" text-anchor="middle" font-size="19" fill="#a5adc0">DONE + commit, in one step</text>
+<rect x="580" y="40" width="290" height="100" rx="50.0" fill="#a5adc0" fill-opacity=".13" stroke="#a5adc0" stroke-width="2.5"/>
+<text x="725.0" y="99.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">End</text>
+<rect x="580" y="520" width="290" height="100" rx="18" fill="#fbbf24" fill-opacity=".13" stroke="#fbbf24" stroke-width="2.5"/>
+<text x="725.0" y="564.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Fix</text>
+<text x="725.0" y="594.0" text-anchor="middle" font-size="19" fill="#a5adc0">at most 2</text>
+<rect x="580" y="840" width="290" height="100" rx="18" fill="#f87171" fill-opacity=".13" stroke="#f87171" stroke-width="2.5"/>
+<text x="725.0" y="884.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">queue.sh block</text>
+<text x="725.0" y="914.0" text-anchor="middle" font-size="19" fill="#a5adc0">stash + BLOCKED, in one step</text>
+<path d="M270.0,142 L270.0,196" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#m-violet)"/>
+<path d="M270.0,302 L270.0,356" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#m-violet)"/>
+<path d="M270.0,462 L270.0,516" fill="none" stroke="#4ade80" stroke-width="2.5" marker-end="url(#m-green)"/>
+<text x="286.0" y="497.0" text-anchor="start" font-size="19" font-weight="600" fill="#4ade80">OK</text>
+<path d="M270.0,622 L270.0,676" fill="none" stroke="#4ade80" stroke-width="2.5" marker-end="url(#m-green)"/>
+<text x="286.0" y="657.0" text-anchor="start" font-size="19" font-weight="600" fill="#4ade80">green</text>
+<path d="M270.0,782 L270.0,836" fill="none" stroke="#4ade80" stroke-width="2.5" marker-end="url(#m-green)"/>
+<text x="286.0" y="817.0" text-anchor="start" font-size="19" font-weight="600" fill="#4ade80">PASS</text>
+<path d="M472,90.0 L576,90.0" fill="none" stroke="#a5adc0" stroke-width="2.5" marker-end="url(#m-muted)"/>
+<text x="525.0" y="78.0" text-anchor="middle" font-size="17" font-weight="600" fill="#a5adc0">queue empty</text>
+<path d="M472,410.0 L725.0,410.0 L725.0,516" fill="none" stroke="#f87171" stroke-width="2.5" marker-end="url(#m-red)"/>
+<text x="717.0" y="396.0" text-anchor="end" font-size="18" font-weight="600" fill="#f87171">out of task or timeout</text>
+<path d="M472,556.0 L576,556.0" fill="none" stroke="#f87171" stroke-width="2.5" marker-end="url(#m-red)"/>
+<text x="525.0" y="546.0" text-anchor="middle" font-size="17" font-weight="600" fill="#f87171">red</text>
+<path d="M578,586.0 L474,586.0" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#m-amber)"/>
+<text x="525.0" y="612.0" text-anchor="middle" font-size="17" font-weight="600" fill="#fbbf24">retry</text>
+<path d="M472,730.0 L685.0,730.0 L685.0,624" fill="none" stroke="#f87171" stroke-width="2.5" marker-end="url(#m-red)"/>
+<text x="490" y="718.0" text-anchor="start" font-size="19" font-weight="600" fill="#f87171">FAIL</text>
+<path d="M765.0,622 L765.0,836" fill="none" stroke="#f87171" stroke-width="2.5" marker-end="url(#m-red)"/>
+<text x="777.0" y="737.0" text-anchor="start" font-size="18" font-weight="600" fill="#f87171">still failing</text>
+<path d="M70,890.0 L38,890.0 L38,90.0 L66,90.0" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#m-violet)"/>
+<path d="M725.0,942 L725.0,980 L38,980 L38,890.0" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="7 6"/>
+<text transform="translate(28,490.0) rotate(-90)" text-anchor="middle" font-size="18" font-weight="600" fill="#a78bfa">next task</text>
+</svg>

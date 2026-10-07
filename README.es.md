@@ -137,18 +137,9 @@ se hace contigo delante.
 
 ## 🧭 Cómo funciona
 
-```mermaid
-flowchart LR
-  subgraph tu["🧑 Contigo"]
-    direction LR
-    A["💬 Entrevista"] --> B["🗺️ Plan y equipo"] --> C["🧱 Fase cero"]
-  end
-  subgraph solo["🌙 Sin ti"]
-    D["🔁 Cola desatendida"]
-  end
-  C -- "🚀 ¿lo lanzo yo? sí" --> D
-  D -- "revisa la sesión" --> E["🔍 Revisión"]
-```
+<p align="center">
+  <img src=".github/assets/flow.es.svg" alt="Cómo funciona: entrevista, plan y equipo y fase cero contigo; la cola desatendida sin ti; después la revisión" width="720">
+</p>
 
 | | Fase | Qué pasa |
 | :-: | --- | --- |
@@ -165,22 +156,9 @@ los scripts, no con el código. Única excepción: tras dos arreglos fallidos
 puede leer el test que falla y la función que prueba, para decidir entre
 bloquear la tarea o dar una orden más clara.
 
-```mermaid
-flowchart LR
-  N(["📋 queue.sh next"]) --> S["▶️ queue.sh start<br/>IN PROGRESS · quita el skip"]
-  S --> W["👷 Worker<br/>solo sus archivos<br/>tests en solo lectura"]
-  W -- OK --> G{"🚦 Gate<br/>guardia · tests · build"}
-  W -- "fuera de tarea<br/>o timeout" --> R["🔧 Arreglo<br/>máximo 2"]
-  G -- verde --> Q{"🔍 QA<br/>otro modelo"}
-  G -- rojo --> R
-  Q -- FAIL --> R
-  R --> G
-  Q -- PASS --> H["✅ queue.sh done<br/>DONE + commit"]
-  R -- "sigue fallando" --> X["⛔ queue.sh block<br/>stash + BLOCKED"]
-  H --> N
-  X --> N
-  N -- "cola vacía" --> F(["🏁 Fin"])
-```
+<p align="center">
+  <img src=".github/assets/task.es.svg" alt="Cada tarea: queue.sh next y start, el worker, el gate y la QA, arreglos como mucho dos veces, y queue.sh done o block" width="640">
+</p>
 
 - **Gate**: guardia de tests, typecheck, tests y build.
 - **QA**: en solo lectura, una por tipo. *Fidelidad* (hace lo que pide la

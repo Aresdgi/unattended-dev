@@ -136,18 +136,9 @@ are done with you watching.
 
 ## 🧭 How it works
 
-```mermaid
-flowchart LR
-  subgraph tu["🧑 With you"]
-    direction LR
-    A["💬 Interview"] --> B["🗺️ Plan and team"] --> C["🧱 Phase zero"]
-  end
-  subgraph solo["🌙 Without you"]
-    D["🔁 Unattended queue"]
-  end
-  C -- "🚀 shall I launch it? yes" --> D
-  D -- "review the session" --> E["🔍 Review"]
-```
+<p align="center">
+  <img src=".github/assets/flow.svg" alt="How it works: interview, plan and team and phase zero with you; the unattended queue without you; then the review" width="720">
+</p>
 
 | | Phase | What happens |
 | :-: | --- | --- |
@@ -164,22 +155,9 @@ the scripts hand back, not from the code. The only exception: after two
 failed fixes it may read the failing test and the function it tests, to
 decide between blocking the task and giving a clearer order.
 
-```mermaid
-flowchart LR
-  N(["📋 queue.sh next"]) --> S["▶️ queue.sh start<br/>IN PROGRESS · removes the skip"]
-  S --> W["👷 Worker<br/>only its files<br/>tests read-only"]
-  W -- OK --> G{"🚦 Gate<br/>guard · tests · build"}
-  W -- "out of task<br/>or timeout" --> R["🔧 Fix<br/>at most 2"]
-  G -- green --> Q{"🔍 QA<br/>another model"}
-  G -- red --> R
-  Q -- FAIL --> R
-  R --> G
-  Q -- PASS --> H["✅ queue.sh done<br/>DONE + commit"]
-  R -- "still failing" --> X["⛔ queue.sh block<br/>stash + BLOCKED"]
-  H --> N
-  X --> N
-  N -- "queue empty" --> F(["🏁 End"])
-```
+<p align="center">
+  <img src=".github/assets/task.svg" alt="Each task: queue.sh next and start, the worker, the gate and QA, fixes at most twice, and queue.sh done or block" width="640">
+</p>
 
 - **Gate**: test guard, typecheck, tests and build.
 - **QA**: read-only, one per type. *Fidelity* (does what the SPEC asks,

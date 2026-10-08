@@ -1,6 +1,6 @@
 # STATUS
 
-<!-- unattended-dev v8.4. Keep the table format: queue.sh reads and writes it. Test is the path of the task's acceptance test (or none). -->
+<!-- unattended-dev v8.5. Keep the table format: queue.sh reads and writes it. Test is the path of the task's acceptance test (or none). -->
 
 States: PENDING, IN PROGRESS, DONE, BLOCKED.
 

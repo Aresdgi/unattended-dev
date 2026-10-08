@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.4: launches a worker of any tool with a time limit,
+# unattended-dev v8.5: launches a worker of any tool with a time limit,
 # a full log and a warning if it touches files outside its task.
 #
 # Usage:
@@ -22,6 +22,7 @@
 #       124 if it ran out of time; 128+N if it was killed by signal N;
 #       any other code, the worker's own.
 #
+# The protections are those of vigilar-worker.sh (begin before, end after).
 # This detects changes after they happen; it does not sandbox the worker.
 set -u
 
@@ -42,21 +43,10 @@ done
 mkdir -p logs
 log="logs/${task}-${role}-$(date +%Y%m%d-%H%M%S)-$$.log"
 
-# Snapshot of modified files: path and a hash of their content, to also
-# notice changes in files that were already modified before the worker.
-snapshot() {
-  git status --porcelain --untracked-files=all 2>/dev/null \
-    | sed -E 's/^.{3}//; s/^"//; s/"$//; s/.* -> //' | grep -v '^logs/' \
-    | while IFS= read -r f; do
-        if [ -f "$f" ]; then echo "$f $(git hash-object -- "$f")"; else echo "$f deleted"; fi
-      done | sort
-}
-state_before=$(snapshot)
-head_before=$(git rev-parse -q --verify HEAD 2>/dev/null || echo none)
-
-restore_perms() { for p in $readonly_paths; do [ -e "$p" ] && chmod -R u+w "$p"; done; }
-for p in $readonly_paths; do [ -e "$p" ] && chmod -R a-w "$p"; done
-trap restore_perms EXIT
+VIGILAR="$(dirname "$0")/vigilar-worker.sh"
+[ -x "$VIGILAR" ] || { echo "Missing $VIGILAR" >&2; exit 2; }
+"$VIGILAR" begin "$role" "$task" --readonly "$readonly_paths" || exit 2
+trap '"$VIGILAR" end "$role" "$task" >/dev/null 2>&1' EXIT
 
 echo "Worker ${role} ${task}: $* " | cut -c1-200
 echo "Log: ${log}"
@@ -72,27 +62,8 @@ perl -e '
   exit($s >> 8);
 ' "$limit" "$@" > "$log" 2>&1 < /dev/null
 code=$?
-restore_perms
-
-state_after=$(snapshot)
-changed=$( (comm -13 <(echo "$state_before") <(echo "$state_after"); comm -23 <(echo "$state_before") <(echo "$state_after")) \
-  | sed -E 's/ [^ ]+$//'
-  # Files changed by commits the worker made, which git status no longer shows.
-  head_after=$(git rev-parse -q --verify HEAD 2>/dev/null || echo none)
-  if [ "$head_before" != "$head_after" ]; then
-    if [ "$head_before" = none ]; then git ls-tree -r --name-only HEAD
-    else git diff --name-only "$head_before" "$head_after"; fi
-  fi )
-changed=$(echo "$changed" | grep -v '^logs/' | grep -v '^$' | sort -u)
-
-outside=""
-for f in $changed; do
-  ok=0
-  for p in $allowed; do
-    case "$f" in "$p"|"$p"/*|"${p%/}"/*) ok=1;; esac
-  done
-  [ "$ok" = 1 ] || outside="$outside $f"
-done
+trap - EXIT
+outside=$("$VIGILAR" end "$role" "$task" --allowed "$allowed")
 
 echo "----- last ${lines} lines -----"
 tail -n "$lines" "$log"
@@ -100,7 +71,7 @@ echo "-----"
 [ "$code" = 124 ] && echo "TIMEOUT: the worker went over ${limit} s and was stopped."
 [ "$code" -gt 128 ] && [ "$code" != 124 ] && echo "KILLED: the worker was stopped by signal $((code - 128))."
 if [ -n "$outside" ]; then
-  echo "OUT OF TASK:$outside"
+  echo "$outside"
   [ "$code" = 0 ] && code=3
 fi
 echo "Exit: ${code}"

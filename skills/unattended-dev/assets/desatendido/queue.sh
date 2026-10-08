@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.4: deterministic queue state. The orchestrator and
+# unattended-dev v8.5: deterministic queue state. The orchestrator and
 # bucle.sh call this instead of deciding by reading the table themselves.
 #
 # Reads and writes the queue table in STATUS.md (or $STATUS_FILE):

@@ -96,6 +96,29 @@ rm -f tests/acceptance/new.txt
 check "--readonly restores write permission afterwards" 0 bash -c 'touch tests/acceptance/after.txt'
 rm -f tests/acceptance/after.txt
 
+echo "== vigilar-worker.sh (workers that start and finish on their own)"
+new_repo vigil
+echo x > src/a.ts; echo y > src/b.ts; printf "describe('T01', () => {})\n" > tests/acceptance/T01.test.ts
+git add -A; git commit -qm base
+V=".desatendido/vigilar-worker.sh"
+check "begin makes the tests read-only" 0 $V begin impl T01 --readonly "tests"
+check_fails "while it runs, the tests cannot be written" bash -c '[ "$(id -u)" = 0 ] && exit 1; echo x >> tests/acceptance/T01.test.ts'
+echo 1 >> src/a.ts
+check "end passes when only allowed files changed" 0 $V end impl T01 --allowed "src/a.ts"
+check "end restores write permission" 0 bash -c 'touch tests/acceptance/x && rm tests/acceptance/x'
+git checkout -q -- src
+$V begin impl T01 >/dev/null
+echo 1 >> src/b.ts; git commit -qam "sneaky commit"
+check "end catches a committed file outside" 3 $V end impl T01 --allowed "src/a.ts"
+check_out "it names it" "OUT OF TASK: src/b.ts"
+git reset -q --hard HEAD~1
+$V begin qa T01 >/dev/null
+echo 1 > src/new.ts
+check "QA (nothing allowed) creating a file is out of task" 3 $V end qa T01
+rm -f src/new.ts
+check "end without begin is a usage error" 2 $V end impl T09
+check "no arguments shows usage" 2 $V
+
 echo "== queue.sh"
 new_repo queue
 cat > STATUS.md <<'EOF'

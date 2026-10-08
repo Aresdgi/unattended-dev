@@ -26,7 +26,11 @@ Do it with the user when they come back with the result. {TAG} is
    worker exited with 3 (OUT OF TASK) or 124 (TIMEOUT), look at its log.
 7. BLOCKED tasks: `git stash list`. Read the reason in STATUS.md and
    propose whether to fix the task, the SPEC or the tests (supervised).
-8. If everything is fine: `git push`.
+8. **Launcher**: the one in `ORQUESTADOR.md` must be the one the user
+   chose. With Orca, `orca orchestration worker-list --run <run_id>
+   --terminal-state reclaimable --json` returns none, and no worker tabs
+   are left open in Orca.
+9. If everything is fine: `git push`.
 
 ## Results table
 

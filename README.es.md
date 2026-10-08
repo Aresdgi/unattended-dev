@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/versión-8.4.0-7c3aed?style=for-the-badge" alt="versión 8.4.0"></a>
+  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/versión-8.5.0-7c3aed?style=for-the-badge" alt="versión 8.5.0"></a>
   <img src="https://img.shields.io/badge/estado-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="tests de los scripts"></a>
   <a href="#licencia"><img src="https://img.shields.io/badge/licencia-MIT-22c55e?style=for-the-badge" alt="licencia MIT"></a>
@@ -188,9 +188,9 @@ probar la cadena entera) y solo entonces lanza de verdad.
   Déjalo enchufado: con batería y la tapa cerrada se dormirá igual.
 - Si tmux no está instalado, **te pide permiso** antes de instalarlo.
 - El CLI de Orca solo funciona dentro de una terminal de Orca. Por eso, si
-  los workers van con Orca, el orquestador arranca en una pestaña de Orca; y
-  si no se puede, te avisa y te propone el lanzador por CLI, que no depende
-  de Orca.
+  los workers van con Orca, el orquestador arranca en una pestaña de Orca.
+  Si no se puede usar Orca, **para y te pregunta**; nunca cambia de lanzador
+  por su cuenta.
 - Si prefieres lanzarlo tú, dile que no y te da `LANZAR.md` rellenado.
 
 ## ⚡ Dos modos
@@ -241,7 +241,7 @@ La skill habla siempre en tu idioma, aunque sus archivos estén en inglés.
 
 ## 🧰 Scripts incluidos
 
-La fase cero copia cuatro scripts a `.desatendido/` en tu proyecto.
+La fase cero copia cinco scripts a `.desatendido/` en tu proyecto.
 Funcionan con cualquier herramienta y en macOS sin instalar nada. Detectan
 los problemas después de que ocurran y toman las decisiones mecánicas; no
 son un entorno aislado.
@@ -289,6 +289,11 @@ vaciar la cola o llegar al límite de horas.
 </td>
 </tr>
 </table>
+
+Y **`vigilar-worker.sh`**: las mismas protecciones que `lanzar-worker.sh`
+(tests en solo lectura, archivos tocados fuera de la tarea) en dos pasos,
+`begin` y `end`, para workers que arrancan y terminan por su cuenta, como
+los de Orca.
 
 <details>
 <summary><b>Uso y códigos de salida</b></summary>
@@ -518,8 +523,13 @@ entorno aislado; por eso la revisión final vuelve a comprobar los tests.
 
 No. Por defecto los workers se lanzan por CLI con `lanzar-worker.sh`, y con
 Claude Code como orquestador basta `claude --bg`. Orca es opcional, si
-quieres ver cada worker en su propia pestaña. tmux solo hace falta si el
-orquestador tiene `/goal` pero no modo en segundo plano, como Codex.
+quieres ver cada worker en su propia pestaña. En ese modo el orquestador
+sigue la guía de orquestación del propio Orca, reutiliza la pestaña del
+implementador para los arreglos, cierra cada pestaña con `worker-release` en
+cuanto deja de hacer falta y comprueba al final que no queda ninguna, con
+las mismas protecciones que por CLI (`vigilar-worker.sh`). tmux solo hace
+falta si el orquestador tiene `/goal` pero no modo en segundo plano, como
+Codex.
 
 </details>
 

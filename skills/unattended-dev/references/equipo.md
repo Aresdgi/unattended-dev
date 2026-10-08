@@ -43,6 +43,11 @@ otherwise your recommendation.
 4. **QA**: recommend a provider different from the implementer's. Models
    find between 8 and 10 points more bugs in someone else's code than in
    their own.
+5. **Worker launcher**, only if Orca is installed: **CLI** (each worker is
+   a command, nothing to watch; works anywhere) or **Orca** (each worker in
+   its own tab that you can watch, closed when no longer needed; the
+   orchestrator must run in an Orca tab). Without Orca, it is CLI and you
+   do not ask.
 
 ## 3. Warnings (once, they never block)
 

@@ -17,18 +17,20 @@
 - Exit codes: 0 fine; 3 touched files that were not allowed; 124 ran out
   of time.
 
-**Orca (if the user wants to see each worker in a tab):**
-
-```zsh
-orca orchestration worker-start --task <id> --worktree current --agent <agent> [--model <model>] --json
-orca orchestration worker-release --dispatch <dispatch_id> --json   # when it has settled
-```
+**Orca (each worker in its own tab):** the rules are in
+`assets/workers-orca.md`, which goes into `ORQUESTADOR.md`. In short:
+follow Orca's own `orchestration` guide (`orca skills get orchestration`)
+for every Orca command; wrap each worker with `vigilar-worker.sh begin` /
+`end` for the same protections as the CLI; reuse the implementer's tab
+for fixes; close tabs only with `worker-release` (never `terminal close`
+on a worker), QA right away and the implementer when its task closes; and
+finish with `worker-list --run <run_id> --terminal-state reclaimable`
+returning none.
 
 Check in its help which agents accept `--model`. If one does not (for
 example opencode), its model goes in the project configuration
 (`opencode.json` with the exact id). Look at `launch.effective` on each
-start. With Orca there is no out-of-task warning: the orchestrator runs
-`git status --short` after each worker.
+start.
 
 `orca orchestration` only works from inside a live Orca terminal (it needs
 `ORCA_TERMINAL_HANDLE`; outside it fails with `no_active_sender_terminal`).

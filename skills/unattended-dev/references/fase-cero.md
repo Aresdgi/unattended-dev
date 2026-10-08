@@ -64,12 +64,24 @@ the queue removes the skip and they are read-only while you work". If Claude is 
 ## 5. Orchestrator and team
 
 - `ORQUESTADOR.md` from `assets/ORQUESTADOR.md`, with the real commands
-  for each role (`references/lanzadores.md`).
+  for each role (`references/lanzadores.md`). Replace `{WORKERS}` with
+  the block of the launcher the user chose: `assets/workers-cli.md` or
+  `assets/workers-orca.md`, never the other, and fill in its values.
+- **The chosen launcher is kept.** If it cannot be used (for example
+  `orca status --json` fails, or `orca skills get orchestration` is
+  unknown), stop, tell the user why and let them choose: fix it or switch.
+  Never switch on your own; note the decision in the Log of STATUS.md.
+- With Orca: run `orca skills get orchestration` once now, so the commands
+  you write match the installed Orca, and fill `{ORCA_AGENTS}` with each
+  role's `--agent` and `--model` (opencode takes no `--model`: its model
+  goes in `opencode.json`).
 - Models pinned in each command, or in the project configuration if the
   launcher does not let you pass them.
 - If there is no native goal: `bucle.sh` configured and tested with
   `MAX_ROUNDS=1`.
-- **Smoke test** of every role. Show it in a table: role, expected model,
+- **Smoke test** of every role **with the chosen launcher** (with Orca:
+  `worker-start`, read the answer with `worker-read`, then
+  `worker-release`). Show it in a table: role, launcher, expected model,
   answer.
 
 ## 6. Approval and commit

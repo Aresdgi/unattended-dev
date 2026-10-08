@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/version-8.4.0-7c3aed?style=for-the-badge" alt="version 8.4.0"></a>
+  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/version-8.5.0-7c3aed?style=for-the-badge" alt="version 8.5.0"></a>
   <img src="https://img.shields.io/badge/status-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="script tests"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="MIT license"></a>
@@ -186,9 +186,8 @@ the whole chain) and only then launches for real.
   it plugged in: on battery with the lid closed it will sleep anyway.
 - If tmux isn't installed, it **asks for permission** before installing it.
 - The Orca CLI only works inside an Orca terminal. So if the workers go
-  through Orca, the orchestrator starts in an Orca tab; if that's not
-  possible, it warns you and proposes the CLI worker launcher, which
-  doesn't depend on Orca.
+  through Orca, the orchestrator starts in an Orca tab. If Orca can't be
+  used, it **stops and asks you**; it never switches launcher on its own.
 - If you'd rather launch it yourself, say no and you get `LANZAR.md` filled
   in.
 
@@ -241,7 +240,7 @@ The skill always talks to you in your language.
 
 ## 🧰 Included scripts
 
-Phase zero copies four scripts to `.desatendido/` in your project. They
+Phase zero copies five scripts to `.desatendido/` in your project. They
 work with any tool and on macOS without installing anything. They detect
 problems after the fact and make the mechanical decisions; they are not a
 sandbox.
@@ -288,6 +287,11 @@ or the hour limit is reached.
 </td>
 </tr>
 </table>
+
+And **`vigilar-worker.sh`**: the same protections as `lanzar-worker.sh`
+(tests read-only, files touched outside the task) in two steps, `begin`
+and `end`, for workers that start and finish on their own, such as Orca
+workers.
 
 <details>
 <summary><b>Usage and exit codes</b></summary>
@@ -514,8 +518,12 @@ the review at the end checks the tests again.
 
 No. By default workers are launched through the CLI with `lanzar-worker.sh`,
 and with Claude Code as the orchestrator `claude --bg` is enough. Orca is
-optional, if you want to see each worker in its own tab. tmux is only needed
-if the orchestrator has `/goal` but no background mode, like Codex.
+optional, if you want to see each worker in its own tab. In that mode the
+orchestrator follows Orca's own orchestration guide, reuses the
+implementer's tab for fixes, closes each tab with `worker-release` as soon
+as it's no longer needed and checks at the end that none is left, with the
+same protections as the CLI (`vigilar-worker.sh`). tmux is only needed if
+the orchestrator has `/goal` but no background mode, like Codex.
 
 </details>
 

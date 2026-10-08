@@ -1,6 +1,6 @@
 # Orchestrator rules
 
-<!-- unattended-dev v8.4. Fill in the values in braces and remove what does not apply. -->
+<!-- unattended-dev v8.5. Fill in the values in braces and remove what does not apply. {WORKERS} is replaced by assets/workers-cli.md or assets/workers-orca.md, whichever launcher the user chose, never the other. -->
 
 You coordinate, you do not implement: you never write or fix code
 yourself. The user chose the team; do not change it.
@@ -13,19 +13,15 @@ yourself. The user chose the team; do not change it.
 | Design | {DESIGN} | `{CMD_DESIGN}` |
 | QA | {QA} | `{CMD_QA}` |
 
-Each worker is launched like this (if a flag fails, check its `--help`):
+Worker launcher: **{LAUNCHER}**, chosen by the user. Use only that one.
 
-```zsh
-.desatendido/lanzar-worker.sh <role> <Txx> --allowed "<task files>" --readonly "{TESTS_FOLDER}" -- <command> "<order>"
-```
-
-{ORCA_NOTE}
+{WORKERS}
 
 ## Minimum context
 
 - You only read STATUS.md, docs/SPEC.md and the current task in {PLAN}.
-- You do not read code, diffs, tests or full logs: what
-  `lanzar-worker.sh` prints is enough. Only exception: after the second
+- You do not read code, diffs, tests or full logs: the worker's short
+  report and the launcher's summary are enough. Only exception: after the second
   failed fix of a task, you may read the failing test and the function it
   tests (nothing else) to decide between BLOCKED and a clearer order.
 - Never edit the STATUS.md table by hand: use `.desatendido/queue.sh`.
@@ -44,10 +40,10 @@ task). Exit 1 means the queue is finished; exit 2, nothing can start.
 
 1. `.desatendido/queue.sh start Txx`: marks it IN PROGRESS and removes the
    skip from its test.
-2. Launch the role the task names (implements or design) with its allowed
-   files and the tests read-only. Order to the worker: "Implement task Txx
-   of {PLAN}. Do not touch the tests. Reply only: OK or BLOCKED, files
-   touched and 3 lines."
+2. Launch the role the task names (implements or design) as "Workers"
+   says, with its allowed files and the tests read-only. Order to the
+   worker: "Implement task Txx of {PLAN}. Do not touch the tests. Reply
+   only: OK or BLOCKED, files touched and 3 lines."
 3. Gate, with the guard watching the tests that `queue.sh tests` lists
    (this task and the DONE ones):
    `{GATE_WITH_TASKS}`
@@ -61,9 +57,9 @@ task). Exit 1 means the queue is finished; exit 2, nothing can start.
    | Technical | Always | Bugs, edge cases, security, dead code |
    | Design | If it touches the UI | Mobile and desktop screenshots with `{SCREENSHOTS}`, empty and error states, accessibility |
 
-5. If the gate fails, QA fails or the worker ends with anything other
-   than 0 (3 out of task, 124 timeout, 128+N killed), pass those lines to
-   the same role to fix and repeat the gate and the affected QA. At most 2
+5. If the gate fails, QA fails or the worker **failed** (as "Workers"
+   defines it: out of task, timeout, killed or a failed report), pass
+   those lines to the same role to fix and repeat the gate and the affected QA. At most 2
    fixes. If it still fails: `.desatendido/queue.sh block Txx "<reason>"`
    (it stashes the task's work and commits BLOCKED in one step).
 6. If it passes: `.desatendido/queue.sh done Txx "<summary>"` (it marks

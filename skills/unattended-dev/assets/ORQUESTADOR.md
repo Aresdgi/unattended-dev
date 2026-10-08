@@ -1,6 +1,6 @@
 # Orchestrator rules
 
-<!-- unattended-dev v8.6. Fill in the values in braces and remove what does not apply. {WORKERS} is replaced by assets/workers-cli.md or assets/workers-orca.md, whichever launcher the user chose, never the other. -->
+<!-- unattended-dev v8.7. Fill in the values in braces and remove what does not apply. {WORKERS} is replaced by assets/workers-cli.md or assets/workers-orca.md, whichever launcher the user chose, never the other. -->
 
 You coordinate, you do not implement: you never write or fix code
 yourself. The user chose the team; do not change it.
@@ -30,8 +30,9 @@ Worker launcher: **{LAUNCHER}**, chosen by the user. Use only that one.
 
 ## On start
 
-Run `.desatendido/queue.sh recover`: any task left IN PROGRESS was cut
-off, so its changes go to a stash and it goes back to PENDING. `queue.sh`
+Print the time (`date`), so the time limit can be checked. Then run
+`.desatendido/queue.sh recover`: any task left IN PROGRESS was cut off,
+so its changes go to a stash and it goes back to PENDING. `queue.sh`
 writes every Log line itself; you never edit STATUS.md.
 
 ## For each task
@@ -115,4 +116,10 @@ Autonomy: **{AUTONOMY}**, chosen by the user.
 - At the end: run the gate with every DONE task and print the full
   output, then, in {LANGUAGE}: each task's outcome, every decision you
   recorded (from `docs/DECISIONES.md`) and, for each BLOCKED task, the
-  exact question the user has to answer.
+  exact question the user has to answer. End with the `queue.sh summary`
+  line.
+- If you broke one of these rules, say which and how in that report,
+  once. Never revert or redo finished work to make up for it, and never
+  wait for an answer: the user reviews it when they are back.
+- The same when a rule tells you to stop and report: say why, print the
+  summary line and stop.

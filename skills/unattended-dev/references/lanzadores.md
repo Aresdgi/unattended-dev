@@ -59,6 +59,11 @@ Ask "shall I launch it?" with these options:
    running. Mandatory when the worker launcher is Orca.
 3. **No**: give `assets/LANZAR.md` filled in and stop.
 
+In the same question, the time limit (`<HOURS>`): propose about 30
+minutes per task, at least 2 hours. If the user says "no limit", drop
+clause (c) from the goal and use 24 hours for `caffeinate` and the time
+fuse, only as a safety net; tell them so in one line.
+
 The orchestrator always starts in a NEW session, in the project folder,
 with a clean context. You never orchestrate from the preparation session.
 
@@ -117,6 +122,19 @@ Always with `caffeinate`, for the whole run:
   mkdir -p logs && nohup caffeinate -ims -t $(( <HOURS> * 3600 + 1800 )) >/dev/null 2>&1 & echo $! > logs/caffeinate.pid
   ```
 
+And a **time fuse** that stops the session even if its goal never ends
+(a goal that cannot be met keeps the orchestrator turning, awake and
+spending quota, until someone stops it). Right after the launch, with the
+stop command of the mechanism (`claude stop <id>`, `tmux kill-session -t
+"ud-<project>"`, `orca terminal close --terminal <handle>`):
+
+```zsh
+nohup sh -c 'sleep $(( <HOURS> * 3600 + 1800 )); <stop command>' >/dev/null 2>&1 & echo $! > logs/fuse.pid
+```
+
+`bucle.sh` needs no fuse: `MAX_HOURS` already bounds it. A task cut off
+by the fuse goes back to PENDING on the next launch (`queue.sh recover`).
+
 `-s` only works on AC power. Tell the user to keep the Mac plugged in:
 on battery with the lid closed it will sleep anyway.
 
@@ -131,7 +149,7 @@ Trivial goal (replace the command with the real QA command from
 
 ```text
 Run once: .desatendido/lanzar-worker.sh qa dry-run --timeout 300 -- <QA command> "Reply with a single line only: OK <your model>. Do not touch any file."
-Then print "DRY RUN <exit code> <last line of the worker>" and stop. Do nothing else.
+Then print "DRY RUN <exit code> <last line of the worker>". The goal is met once that line is printed.
 ```
 
 With Orca as the worker launcher, instead: `orca orchestration
@@ -155,7 +173,7 @@ the real launch; do not launch with a dry run that did not pass.
 The goal, with the values filled in:
 
 ```text
-/goal Read ORQUESTADOR.md, STATUS.md and docs/SPEC.md, nothing else, and work as ORQUESTADOR.md says. Done when every task in STATUS.md is DONE or BLOCKED and your last turn printed the full gate output ending without errors. If you have been at it for <HOURS> hours, stop and leave STATUS.md up to date.
+/goal You are the orchestrator: work as ORQUESTADOR.md says. The goal is met as soon as one of these is true: (a) `.desatendido/queue.sh summary` prints 0 PENDING and your last turn printed the full gate output ending without errors; (b) ORQUESTADOR.md told you to stop and report, and you did; (c) <HOURS> hours have passed since your first turn and STATUS.md is up to date. Only that end state counts. Mistakes in how you got there go in your final report once; they are never a reason to keep going, to redo finished work or to wait for an answer.
 ```
 
 **Claude Code:**
@@ -207,16 +225,20 @@ and nothing to send. Watch: the tab in Orca, or `orca terminal read
 ### 5. Tell the user
 
 In a few lines: mechanism, session id or name, how to watch it, how to
-stop it (including `kill $(cat logs/caffeinate.pid)` if there is one) and
+stop it (including `kill $(cat logs/caffeinate.pid)` if there is one),
+when the time fuse fires (cancel: `kill $(cat logs/fuse.pid)`) and
 "when you are back, come to this session and say: review the session".
 Write the same into the "Launched for you" block of `LANZAR.md`.
 
 ## Keeping the orchestrator alive
 
-1. **Native goal** if the tool has one (`/goal` or similar). The
-   condition must be checkable by reading the conversation: the
-   orchestrator prints the gate output. If it allows a token budget, set
-   it.
+1. **Native goal** if the tool has one (`/goal` or similar). Use the
+   goal above as it is. Its condition must be an end state that can be
+   checked by reading the conversation (the orchestrator prints the
+   summary and the gate output), never how the work was done: "following
+   the rules" or "read nothing else" can no longer be met after one slip,
+   and the goal then loops forever. Every stop that `ORQUESTADOR.md` asks
+   for must also meet it. If the tool allows a token budget, set it.
 2. **Continue when the quota renews**, if the tool has it (in Claude
    Code, the option to continue automatically when the limit is hit).
    Check it in its configuration.

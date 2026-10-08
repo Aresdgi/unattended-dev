@@ -1,6 +1,6 @@
 ## Workers: Orca
 
-<!-- unattended-dev v8.6. Phase zero pastes this block into ORQUESTADOR.md, in place of {WORKERS}, when the worker launcher is Orca. -->
+<!-- unattended-dev v8.7. Phase zero pastes this block into ORQUESTADOR.md, in place of {WORKERS}, when the worker launcher is Orca. -->
 
 Each worker runs in its own Orca tab, so the user can watch it, and its
 tab is closed as soon as it is no longer needed. Never use

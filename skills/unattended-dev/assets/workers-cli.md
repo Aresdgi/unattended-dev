@@ -1,6 +1,6 @@
 ## Workers: CLI
 
-<!-- unattended-dev v8.6. Phase zero pastes this block into ORQUESTADOR.md, in place of {WORKERS}, when the worker launcher is CLI. -->
+<!-- unattended-dev v8.7. Phase zero pastes this block into ORQUESTADOR.md, in place of {WORKERS}, when the worker launcher is CLI. -->
 
 Each worker is one command that `lanzar-worker.sh` runs, waits for and
 ends. If a flag fails, check its `--help`.

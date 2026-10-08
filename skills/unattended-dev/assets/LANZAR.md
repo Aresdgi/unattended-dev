@@ -1,6 +1,6 @@
 # How to launch the queue
 
-<!-- unattended-dev v8.6. Fill in everything. If you launched it yourself, fill in "Launched for you" and delete "Launch it yourself"; if not, the other way round. -->
+<!-- unattended-dev v8.7. Fill in everything. If you launched it yourself, fill in "Launched for you" and delete "Launch it yourself"; if not, the other way round. -->
 
 **Before:** note the quota left on each tool of the team and the time. If
 one of them is not enough for the queue, wait for it to renew or switch
@@ -16,6 +16,7 @@ the lid closed it will sleep anyway.
 - **Watch it:** `{WATCH_CMD}`
 - **Stop it:** `{STOP_CMD}`
 - **Keep-awake:** `caffeinate` until {CAFFEINATE_UNTIL}; stop it early with `kill $(cat logs/caffeinate.pid)`
+- **Time fuse:** the session is stopped at {FUSE_AT} even if its goal never ends; cancel it with `kill $(cat logs/fuse.pid)`
 
 ## Launch it yourself
 
@@ -26,19 +27,20 @@ the lid closed it will sleep anyway.
 2. Paste this and read the answer:
 
 ```text
-You are the orchestrator. Read ORQUESTADOR.md, STATUS.md and docs/SPEC.md,
-nothing else. Tell me in 5 lines how you are going to work and the exact
+You are the orchestrator. Read ORQUESTADOR.md, then STATUS.md and
+docs/SPEC.md. Tell me in 5 lines how you are going to work and the exact
 commands you will use, and wait.
 ```
 
 3. If it fits, launch:
 
 ```text
-{GOAL_COMMAND} Every task in STATUS.md is DONE or BLOCKED following
-ORQUESTADOR.md, and your last turn printed the full gate output ending
-without errors. If you have been at it for {HOURS} hours, stop and leave
-STATUS.md up to date.
+{GOAL_COMMAND} You are the orchestrator: work as ORQUESTADOR.md says. The goal is met as soon as one of these is true: (a) `.desatendido/queue.sh summary` prints 0 PENDING and your last turn printed the full gate output ending without errors; (b) ORQUESTADOR.md told you to stop and report, and you did; (c) {HOURS} hours have passed since your first turn and STATUS.md is up to date. Only that end state counts. Mistakes in how you got there go in your final report once; they are never a reason to keep going, to redo finished work or to wait for an answer.
 ```
+
+4. If it keeps saying the goal is not met while nothing changes, stop it
+   (`/goal clear` or close the session). Nothing is lost: the state is in
+   STATUS.md and git, and launching again resumes it.
 
 ### B. With the external loop
 

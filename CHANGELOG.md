@@ -10,6 +10,31 @@ Every version of unattended-dev, from the very first one. Versions from
 Earlier ones lived in a private repo, under other names: `modo-nocturno`
 (1 and 2) and `modo-desatendido` (3 to 8.1.0).
 
+## [8.7.0] - 2026-10-08
+
+A goal that always ends. In a real run the queue finished (3 DONE, 2
+BLOCKED, gate green) but the session kept turning for over twenty turns:
+the `/goal` asked for the work to have been done "following
+ORQUESTADOR.md" and after reading "nothing else", and after one slip that
+could never be true again.
+
+### Fixed
+- The `/goal` asks only for an end state: `queue.sh summary` shows 0
+  PENDING and the gate passes, or the orchestrator had to stop and said
+  why, or the hours are up. How the work was done is not part of it.
+- The orchestrator reports its own slips once in the final report and
+  never reverts finished work or waits for an answer to make up for them.
+- The first prompt and the dry run no longer say "nothing else".
+
+### Added
+- A time fuse that stops the session at the end of the chosen hours even
+  if its goal never ends. With "no limit" it stays at 24 hours as a
+  safety net.
+- The time limit is asked in the launch question (about 30 minutes per
+  task by default), and the orchestrator prints the time when it starts.
+- Tests that the goal is the same in both templates and only asks for an
+  end state. 124 tests.
+
 ## [8.6.0] - 2026-10-08
 
 Proactive autonomy and what the first real run taught. In that run (a pace
@@ -236,6 +261,7 @@ First version, as **modo-nocturno** (night mode).
 - Startup checks: jq, Orca, running inside an Orca terminal, opencode
   permissions, fuses and an empty queue.
 
+[8.7.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.0
 [8.6.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.6.0
 [8.5.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.5.0
 [8.4.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.4.0

@@ -10,6 +10,31 @@ son públicas y cada una tiene su
 Las anteriores vivían en un repo privado y con otros nombres:
 `modo-nocturno` (1 y 2) y `modo-desatendido` (de la 3 a la 8.1.0).
 
+## [8.7.0] - 2026-10-08
+
+Un goal que siempre termina. En una ejecución real la cola terminó (3
+DONE, 2 BLOCKED, gate en verde) pero la sesión siguió dando vueltas más de
+veinte turnos: el `/goal` pedía que el trabajo se hubiera hecho "siguiendo
+ORQUESTADOR.md" y leyendo "nada más", y tras un solo desliz eso ya no
+podía cumplirse nunca.
+
+### Corregido
+- El `/goal` solo pide un estado final: `queue.sh summary` muestra 0
+  PENDING y el gate pasa, o el orquestador tuvo que parar y dijo por qué,
+  o se acabaron las horas. Cómo se hizo el trabajo no forma parte de él.
+- El orquestador cuenta sus propios deslices una vez en el informe final y
+  nunca revierte trabajo terminado ni espera respuesta para compensarlos.
+- El primer prompt y la prueba en seco ya no dicen "nada más".
+
+### Añadido
+- Un fusible de tiempo que para la sesión al acabar las horas elegidas
+  aunque su goal no termine nunca. Con "sin límite" queda a las 24 horas
+  como red de seguridad.
+- El límite de tiempo se pregunta al lanzar (unos 30 minutos por tarea
+  por defecto), y el orquestador imprime la hora al empezar.
+- Tests de que el goal es el mismo en las dos plantillas y solo pide un
+  estado final. 124 tests.
+
 ## [8.6.0] - 2026-10-08
 
 Autonomía proactiva y lo que enseñó la primera ejecución real. En ella (una
@@ -241,6 +266,7 @@ Primera versión, como **modo-nocturno**.
 - Comprobaciones al arrancar: jq, Orca, estar dentro de una terminal de
   Orca, permisos de opencode, fusibles y cola vacía.
 
+[8.7.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.0
 [8.6.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.6.0
 [8.5.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.5.0
 [8.4.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.4.0

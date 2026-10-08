@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="CHANGELOG.es.md"><img src="https://img.shields.io/badge/versión-8.6.0-7c3aed?style=for-the-badge" alt="versión 8.6.0"></a>
+  <a href="CHANGELOG.es.md"><img src="https://img.shields.io/badge/versión-8.7.0-7c3aed?style=for-the-badge" alt="versión 8.7.0"></a>
   <img src="https://img.shields.io/badge/estado-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="tests de los scripts"></a>
   <a href="#licencia"><img src="https://img.shields.io/badge/licencia-MIT-22c55e?style=for-the-badge" alt="licencia MIT"></a>
@@ -205,6 +205,13 @@ probar la cadena entera) y solo entonces lanza de verdad.
 
 - Siempre con **`caffeinate`** para que el Mac no se duerma mientras dure.
   Déjalo enchufado: con batería y la tapa cerrada se dormirá igual.
+- El `/goal` solo pide un **estado final**: la cola sin tareas PENDING y
+  el gate en verde, que el orquestador haya tenido que parar y diga por
+  qué, o que se acaben las horas que elegiste. Los fallos por el camino
+  van al informe final y nunca lo dejan dando vueltas.
+- Un **fusible de tiempo** para la sesión al acabar esas horas aunque el
+  goal no termine nunca. Si dices "sin límite", queda como red de
+  seguridad a las 24 horas.
 - Si tmux no está instalado, **te pide permiso** antes de instalarlo.
 - El CLI de Orca solo funciona dentro de una terminal de Orca. Por eso, si
   los workers van con Orca, el orquestador arranca en una pestaña de Orca.

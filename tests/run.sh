@@ -294,6 +294,19 @@ check "the loop stops if recover fails" 1 .desatendido/bucle.sh
 check_out "it says recover failed" "recover failed"
 rm -f .git/index.lock
 
+echo "== the launch goal"
+SKILL="$ROOT/skills/unattended-dev"
+goal_of() { # the goal text in LANZAR.md or lanzadores.md, placeholders unified
+  grep -hE '^(\{GOAL_COMMAND\}|/goal) You are the orchestrator' "$1" | sed -E 's/^(\{GOAL_COMMAND\}|\/goal) //; s/<HOURS>/{HOURS}/g'
+}
+goal_of "$SKILL/assets/LANZAR.md" > "$WORK/goal-lanzar"
+goal_of "$SKILL/references/lanzadores.md" > "$WORK/goal-lanzadores"
+check "LANZAR.md and lanzadores.md launch the same goal" 0 cmp -s "$WORK/goal-lanzar" "$WORK/goal-lanzadores"
+check "the goal is met by an end state the summary shows" 0 grep -qF 'queue.sh summary` prints 0 PENDING' "$WORK/goal-lanzar"
+check "the goal covers the stops ORQUESTADOR.md asks for" 0 grep -qF 'told you to stop and report' "$WORK/goal-lanzar"
+check_fails "the goal asks nothing about how the work was done" grep -qiE 'nothing else|following ORQUESTADOR' "$WORK/goal-lanzar"
+check "the summary prints the PENDING count the goal reads" 0 grep -qF '%d PENDING' "$SRC/queue.sh"
+
 echo
 echo "$pass passed, $fail failed"
 [ "$fail" = 0 ]

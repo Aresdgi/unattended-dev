@@ -19,13 +19,16 @@ Do it with the user when they come back with the result. {TAG} is
 4. Gate run by the user: `npm run gate` (or the project's one).
 5. Manual test: 3 to 5 calls or screens with a known result, taken from
    the SPEC. Write the exact command.
-6. Did the orchestrator read code? Have the user search the session for
+6. Did the orchestrator read code or break a rule? Its final report
+   lists the slips it noticed; also have the user search the session for
    reads of `src/` or of the tests (`claude attach <id>`, `tmux attach`
-   or the log, depending on the launcher).
+   or the log, depending on the launcher). If it kept answering "goal not
+   met" after the queue finished, its goal was not the one in
+   `references/lanzadores.md`.
 7. Leftovers: background sessions (`claude agents`), tmux sessions
    (`tmux ls`), terminals left open in Orca or elsewhere, hung processes
-   and `caffeinate` (`kill $(cat logs/caffeinate.pid)` if it is still
-   alive). Close them. If there was an external loop, check
+   `caffeinate` and the time fuse (`kill $(cat logs/caffeinate.pid
+   logs/fuse.pid)` if they are still alive). Close them. If there was an external loop, check
    `logs/bucle-*.log` and delete `AGENT_STOP` if it was left behind. If a
    worker exited with 3 (OUT OF TASK) or 124 (TIMEOUT), look at its log.
 8. BLOCKED tasks: `git stash list`. Read the reason in STATUS.md and

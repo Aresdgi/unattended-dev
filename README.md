@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-8.6.0-7c3aed?style=for-the-badge" alt="version 8.6.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-8.7.0-7c3aed?style=for-the-badge" alt="version 8.7.0"></a>
   <img src="https://img.shields.io/badge/status-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="script tests"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="MIT license"></a>
@@ -203,6 +203,13 @@ the whole chain) and only then launches for real.
 
 - Always with **`caffeinate`** so the Mac doesn't sleep while it runs. Keep
   it plugged in: on battery with the lid closed it will sleep anyway.
+- The `/goal` only asks for an **end state**: the queue has no PENDING
+  tasks and the gate passes, the orchestrator had to stop and said why,
+  or the hours you chose are up. Mistakes along the way go in the final
+  report and never keep it turning.
+- A **time fuse** stops the session at the end of those hours even if the
+  goal never ends. If you say "no limit", it stays as a safety net at 24
+  hours.
 - If tmux isn't installed, it **asks for permission** before installing it.
 - The Orca CLI only works inside an Orca terminal. So if the workers go
   through Orca, the orchestrator starts in an Orca tab. If Orca can't be

@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-8.7.1-7c3aed?style=for-the-badge" alt="version 8.7.1"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-8.7.2-7c3aed?style=for-the-badge" alt="version 8.7.2"></a>
   <img src="https://img.shields.io/badge/status-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="script tests"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="MIT license"></a>
@@ -330,6 +330,7 @@ workers.
 .desatendido/queue.sh block T01 "reason"    # stash + BLOCKED, in one step
 .desatendido/queue.sh fix T01 "reason"      # counts a fix; exit 5 when none are left
 .desatendido/queue.sh decide T01 "rule"     # records a default decision, +1 fix
+.desatendido/queue.sh note "text"           # a free line in the Log
 
 # A worker, with its allowed files and the tests read-only
 .desatendido/lanzar-worker.sh implements T01 \

@@ -19,7 +19,8 @@ tab is closed as soon as it is no longer needed. Never use
    on your own.
 3. Bind one Run for the whole queue: `ORCA orchestration run-current
    --json`, or `ORCA orchestration run-create --objective "unattended
-   queue of {PROJECT}" --json` if there is none. Note its id in the Log.
+   queue of {PROJECT}" --json` if there is none. Record its id:
+   `.desatendido/queue.sh note "Orca run <run_id>"`.
 
 ### For each worker
 
@@ -38,7 +39,8 @@ tab is closed as soon as it is no longer needed. Never use
      finish, send worker_done as your preamble says, with OK or BLOCKED,
      the files you touched and 3 lines."
    - Agents and models: {ORCA_AGENTS}. Compare `launch.requested` with
-     `launch.effective`; if they differ, note it in the Log.
+     `launch.effective`; if they differ, record it with `.desatendido/queue.sh
+     note "<Txx> <role>: asked <x>, got <y>"`.
    - If `worker-start` exits non-zero, do not relaunch: follow Orca's
      recovery reference.
 3. Wait: `ORCA orchestration check --wait --types "worker_done,escalation,question" --timeout-ms 1200000 --json`.

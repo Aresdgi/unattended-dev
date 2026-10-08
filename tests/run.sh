@@ -248,6 +248,12 @@ $Q start T02 >/dev/null; mkdir -p src; echo half > src/T02.ts
 check "recover writes the interruption in the Log" 0 $Q recover
 check "the Log names the stash" 0 grep -q "T02 interrupted: back to PENDING" STATUS.md
 check "fix needs the task IN PROGRESS" 3 $Q fix T02 "x"
+$Q start T02 >/dev/null; echo half > src/T02.ts
+check "note writes a free line in the Log" 0 $Q note "Orca run run_123"
+check "the note is committed" 0 bash -c 'git show HEAD:STATUS.md | grep -q "note: Orca run run_123"'
+check "the note commit takes only STATUS.md" 1 bash -c 'git show HEAD --name-only | grep -q src/T02.ts'
+check "a note does not count as a fix" 0 $Q fix T02 "after a note"; check_out "fix 1 of 2" "fix 1 of 2"
+check "note needs a text" 1 $Q note
 
 echo "== bucle.sh"
 new_repo loop

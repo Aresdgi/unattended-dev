@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="CHANGELOG.es.md"><img src="https://img.shields.io/badge/versión-8.7.1-7c3aed?style=for-the-badge" alt="versión 8.7.1"></a>
+  <a href="CHANGELOG.es.md"><img src="https://img.shields.io/badge/versión-8.7.2-7c3aed?style=for-the-badge" alt="versión 8.7.2"></a>
   <img src="https://img.shields.io/badge/estado-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="tests de los scripts"></a>
   <a href="#licencia"><img src="https://img.shields.io/badge/licencia-MIT-22c55e?style=for-the-badge" alt="licencia MIT"></a>
@@ -332,6 +332,7 @@ los de Orca.
 .desatendido/queue.sh block T01 "motivo"   # stash + BLOCKED, de una vez
 .desatendido/queue.sh fix T01 "motivo"     # cuenta un arreglo; sale con 5 si no quedan
 .desatendido/queue.sh decide T01 "regla"   # apunta una decisión por defecto, +1 arreglo
+.desatendido/queue.sh note "texto"         # una línea libre en el Log
 
 # Un worker, con sus archivos permitidos y los tests en solo lectura
 .desatendido/lanzar-worker.sh implements T01 \

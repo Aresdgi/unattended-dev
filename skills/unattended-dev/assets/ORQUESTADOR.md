@@ -33,7 +33,8 @@ Worker launcher: **{LAUNCHER}**, chosen by the user. Use only that one.
 Print the time (`date`), so the time limit can be checked. Then run
 `.desatendido/queue.sh recover`: any task left IN PROGRESS was cut off,
 so its changes go to a stash and it goes back to PENDING. `queue.sh`
-writes every Log line itself; you never edit STATUS.md.
+writes every Log line itself; you never edit STATUS.md. For anything
+else worth keeping in the Log, `.desatendido/queue.sh note "<text>"`.
 
 ## For each task
 

@@ -10,6 +10,21 @@ son públicas y cada una tiene su
 Las anteriores vivían en un repo privado y con otros nombres:
 `modo-nocturno` (1 y 2) y `modo-desatendido` (de la 3 a la 8.1.0).
 
+## [8.7.2] - 2026-10-08
+
+Notas de la cola en el Log.
+
+De la tercera ejecución real (un CLI para repartir gastos, con Orca): 7 de
+7 tareas DONE en 36 minutos, una decisión tomada por su cuenta, arreglos
+dentro del límite y el goal cerrado solo.
+
+### Corregido
+- El modo Orca pedía al orquestador apuntar en el Log el id del Run y
+  cualquier diferencia de modelo, pero no puede editar STATUS.md y
+  `queue.sh` no tenía comando para eso. Nuevo `queue.sh note "<texto>"`:
+  añade una línea libre al Log y hace commit solo de STATUS.md.
+- 132 tests.
+
 ## [8.7.1] - 2026-10-08
 
 De la segunda ejecución real, con Orca como lanzador de workers: las 5
@@ -279,6 +294,7 @@ Primera versión, como **modo-nocturno**.
 - Comprobaciones al arrancar: jq, Orca, estar dentro de una terminal de
   Orca, permisos de opencode, fusibles y cola vacía.
 
+[8.7.2]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.2
 [8.7.1]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.1
 [8.7.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.0
 [8.6.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.6.0

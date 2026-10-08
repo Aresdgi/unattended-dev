@@ -10,6 +10,21 @@ Every version of unattended-dev, from the very first one. Versions from
 Earlier ones lived in a private repo, under other names: `modo-nocturno`
 (1 and 2) and `modo-desatendido` (3 to 8.1.0).
 
+## [8.7.2] - 2026-10-08
+
+Queue notes in the Log.
+
+From the third real run (an expense splitter CLI, Orca launcher): 7 of 7
+tasks DONE in 36 minutes, one decision taken on its own, fixes within the
+limit and the goal closed by itself.
+
+### Fixed
+- Orca mode asked the orchestrator to write the Run id and any model
+  mismatch in the Log, but it may never edit STATUS.md and `queue.sh` had
+  no command for it. New `queue.sh note "<text>"` adds a free line to the
+  Log and commits only STATUS.md.
+- 132 tests.
+
 ## [8.7.1] - 2026-10-08
 
 From the second real run, with Orca as the worker launcher: all 5 tasks
@@ -274,6 +289,7 @@ First version, as **modo-nocturno** (night mode).
 - Startup checks: jq, Orca, running inside an Orca terminal, opencode
   permissions, fuses and an empty queue.
 
+[8.7.2]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.2
 [8.7.1]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.1
 [8.7.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.0
 [8.6.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.6.0

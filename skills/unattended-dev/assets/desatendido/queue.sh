@@ -30,6 +30,8 @@
 #                                 in docs/DECISIONES.md ($DECISIONS_FILE) and the
 #                                 Log, committed at once so it survives a block.
 #                                 Exit 5 after 2 decisions for one task: block it.
+#   queue.sh note <text>          Add a free line to the Log (committed), for what
+#                                 the orchestrator must record outside a task step.
 #   queue.sh done <task> <msg>    DONE and commit everything as "<task>: <msg>".
 #   queue.sh block <task> <why>   Stash the task's changes, then BLOCKED (committed).
 #   queue.sh recover              Every IN PROGRESS task was cut off: stash its
@@ -47,7 +49,7 @@ STATUS="${STATUS_FILE:-STATUS.md}"
 DECISIONS="${DECISIONS_FILE:-docs/DECISIONES.md}"
 MAX_FIXES="${QUEUE_MAX_FIXES:-2}"
 MAX_DECISIONS=2
-case "${1:-}" in next|start|fix|decide|done|block|recover|set|state|tests|summary) ;; *) sed -n "2,45p" "$0"; exit 3;; esac
+case "${1:-}" in next|start|fix|decide|note|done|block|recover|set|state|tests|summary) ;; *) sed -n "2,46p" "$0"; exit 3;; esac
 [ -f "$STATUS" ] || { echo "queue: $STATUS not found" >&2; exit 3; }
 git rev-parse -q --verify HEAD >/dev/null 2>&1 || { echo "queue: needs a git repo with at least one commit" >&2; exit 3; }
 
@@ -195,6 +197,11 @@ case "$cmd" in
       echo "queue: could not commit the decision" >&2; exit 4
     fi
     echo "queue: decision for $task recorded in $DECISIONS (one more fix allowed)" ;;
+  note)
+    text="${*:?queue note <text>}"
+    log_line "note: $text"
+    commit_status "queue: note" || exit 4
+    echo "queue: noted in the Log" ;;
   done)
     task="${1:?queue done <task> <message>}"; shift; msg="${*:-done}"
     need_state "$task" "IN PROGRESS"

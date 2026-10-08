@@ -10,6 +10,19 @@ Every version of unattended-dev, from the very first one. Versions from
 Earlier ones lived in a private repo, under other names: `modo-nocturno`
 (1 and 2) and `modo-desatendido` (3 to 8.1.0).
 
+## [8.7.1] - 2026-10-08
+
+From the second real run, with Orca as the worker launcher: all 5 tasks
+DONE, every QA PASS, no decisions needed.
+
+### Fixed
+- Orca mode checked that it runs inside an Orca terminal with
+  `caller.orcaSessionId` from `orca status --json`, which Orca 1.4.221
+  does not show. It now checks `$ORCA_TERMINAL_HANDLE`, like the launch
+  reference already did.
+- Worker tabs Orca keeps as the user's (`user_takeover`) are listed in the
+  final report, so you know which ones to close.
+
 ## [8.7.0] - 2026-10-08
 
 A goal that always ends. In a real run the queue finished (3 DONE, 2
@@ -261,6 +274,7 @@ First version, as **modo-nocturno** (night mode).
 - Startup checks: jq, Orca, running inside an Orca terminal, opencode
   permissions, fuses and an empty queue.
 
+[8.7.1]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.1
 [8.7.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.0
 [8.6.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.6.0
 [8.5.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.5.0

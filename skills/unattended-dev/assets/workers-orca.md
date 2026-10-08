@@ -12,9 +12,11 @@ tab is closed as soon as it is no longer needed. Never use
    the executable as its `orchestration` skill says (below, `ORCA`) and
    run `ORCA skills get orchestration`. This file only adds the queue
    rules on top of it.
-2. `ORCA status --json` must show `caller.orcaSessionId`: you have to be
-   running inside an Orca terminal. If not, **stop and report it**; never
-   switch to another launcher on your own.
+2. You have to be running inside an Orca terminal: `echo
+   "$ORCA_TERMINAL_HANDLE"` must not be empty (Orca sets it in every
+   terminal it opens; `orca status` does not say it in every version). If
+   it is empty, **stop and report it**; never switch to another launcher
+   on your own.
 3. Bind one Run for the whole queue: `ORCA orchestration run-current
    --json`, or `ORCA orchestration run-create --objective "unattended
    queue of {PROJECT}" --json` if there is none. Note its id in the Log.
@@ -68,7 +70,9 @@ Wrap it with `vigilar-worker.sh begin` / `end` like any worker.
   `queue.sh block`.
 - Only `worker-release`, and only for Dispatches you started. Never
   `terminal close` on a worker, never your own tab, never a tab you did
-  not open. Orca keeps the ones it considers the user's; that is correct.
+  not open. Orca keeps the tabs it considers the user's (for example
+  `user_takeover`, after someone typed in one); that is correct. List
+  them in the final report so the user closes them.
 - Before the final report: `ORCA orchestration worker-list --run <run_id>
   --terminal-state reclaimable --json` must return none. Release what it
   lists, then report how many tabs were opened and released.

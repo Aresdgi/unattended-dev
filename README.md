@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-8.7.0-7c3aed?style=for-the-badge" alt="version 8.7.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-8.7.1-7c3aed?style=for-the-badge" alt="version 8.7.1"></a>
   <img src="https://img.shields.io/badge/status-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="script tests"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="MIT license"></a>

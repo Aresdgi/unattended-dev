@@ -10,6 +10,19 @@ son públicas y cada una tiene su
 Las anteriores vivían en un repo privado y con otros nombres:
 `modo-nocturno` (1 y 2) y `modo-desatendido` (de la 3 a la 8.1.0).
 
+## [8.7.1] - 2026-10-08
+
+De la segunda ejecución real, con Orca como lanzador de workers: las 5
+tareas DONE, todas las QA en PASS y ninguna decisión necesaria.
+
+### Corregido
+- El modo Orca comprobaba que corre dentro de una terminal de Orca con
+  `caller.orcaSessionId` de `orca status --json`, que Orca 1.4.221 no
+  muestra. Ahora comprueba `$ORCA_TERMINAL_HANDLE`, como ya hacía la
+  referencia de lanzamiento.
+- Las pestañas de workers que Orca conserva como tuyas (`user_takeover`)
+  salen en el informe final, para que sepas cuáles cerrar.
+
 ## [8.7.0] - 2026-10-08
 
 Un goal que siempre termina. En una ejecución real la cola terminó (3
@@ -266,6 +279,7 @@ Primera versión, como **modo-nocturno**.
 - Comprobaciones al arrancar: jq, Orca, estar dentro de una terminal de
   Orca, permisos de opencode, fusibles y cola vacía.
 
+[8.7.1]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.1
 [8.7.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.0
 [8.6.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.6.0
 [8.5.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.5.0

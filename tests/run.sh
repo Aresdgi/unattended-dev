@@ -305,6 +305,8 @@ check "LANZAR.md and lanzadores.md launch the same goal" 0 cmp -s "$WORK/goal-la
 check "the goal is met by an end state the summary shows" 0 grep -qF 'queue.sh summary` prints 0 PENDING' "$WORK/goal-lanzar"
 check "the goal covers the stops ORQUESTADOR.md asks for" 0 grep -qF 'told you to stop and report' "$WORK/goal-lanzar"
 check_fails "the goal asks nothing about how the work was done" grep -qiE 'nothing else|following ORQUESTADOR' "$WORK/goal-lanzar"
+check "Orca mode checks the terminal the same way as lanzadores.md" 0 grep -qF 'ORCA_TERMINAL_HANDLE' "$SKILL/assets/workers-orca.md"
+check_fails "Orca mode does not rely on orca status for it" grep -qF 'orcaSessionId' "$SKILL/assets/workers-orca.md"
 check "the summary prints the PENDING count the goal reads" 0 grep -qF '%d PENDING' "$SRC/queue.sh"
 
 echo

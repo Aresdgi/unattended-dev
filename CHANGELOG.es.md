@@ -10,6 +10,106 @@ son públicas y cada una tiene su
 Las anteriores vivían en un repo privado y con otros nombres:
 `modo-nocturno` (1 y 2) y `modo-desatendido` (de la 3 a la 8.1.0).
 
+## [8.8.0] - 2026-10-08
+
+Candados. Las reglas que impiden que llegue a DONE trabajo roto o
+manipulado las hace cumplir `queue.sh`, no el orquestador: si un worker o
+el orquestador se equivocan, el comando se niega con un código de salida
+claro.
+
+### Añadido
+- `queue.sh qa <tarea> <tipo> PASS|FAIL "<resumen>"` registra un
+  veredicto de QA para el código exacto que revisó.
+- `queue.sh outside <tarea>` lista los archivos que una tarea cambió desde
+  que empezó (con commit o sin él) y que no puede tocar, y
+  `queue.sh restore-outside <tarea>` los devuelve a su estado, con una
+  copia en una rama de copia.
+- `con-limite.sh`: límite de tiempo para cualquier comando, que para todo
+  su grupo de procesos, también lo que el comando deja en segundo plano
+  al terminar. Lo usan `lanzar-worker.sh` y `bucle.sh`.
+- La fase cero deja el gate en `.desatendido/gate.sh` y los archivos que
+  puede tocar cada tarea en `.desatendido/allowed/Txx` (y
+  `.desatendido/qa/Txx` para las tareas que necesitan QA de diseño).
+
+### Cambiado
+- `queue.sh done` comprueba antes de cerrar: nada fuera de la tarea
+  (sale con 6), el gate pasa y no cambia ningún archivo, lo que hay en
+  staging ni hace commit, ejecutado por el propio `done` (sale con 7), y hay un QA PASS de cada tipo para el código
+  tal como está (sale con 8). Si se niega, la tarea sigue IN PROGRESS y el
+  árbol queda como estaba: lo que cambió el gate se devuelve. Así el
+  commit de DONE es siempre el código que vio la QA. Si el gate cambia de
+  rama, `done` se para con 4 sin mover ninguna referencia.
+- Mientras una tarea está IN PROGRESS, `STATUS.md` y `docs/DECISIONES.md`
+  tienen que estar exactamente como los dejó `queue.sh`. Si no, `fix`,
+  `decide`, `note`, `qa` y `set` se niegan (salen con 6) en vez de hacer
+  commit del cambio de otro, y `recover` rehace la tabla aunque un worker
+  la haya vaciado o borrado.
+- `queue.sh start` se niega si una dependencia no está DONE, si hay otra
+  tarea IN PROGRESS o si la tarea no tiene lista de archivos permitidos.
+- `block` y `recover` guardan el trabajo de la tarea en una rama
+  `queue/backup/<tarea>-<fecha>` en vez de un stash, y devuelven todos los
+  archivos que tocó la tarea a como estaban al empezar, incluido lo que el
+  worker llegó a commitear. La historia no se reescribe.
+- `bucle.sh` corta cada vuelta a los `ROUND_TIMEOUT` segundos (1 hora por
+  defecto) o al tiempo que quede de `MAX_HOURS`; la tarea vuelve a PENDING
+  y el bucle se para con 124.
+- El gate ejecuta los tests de aceptación por su nombre, tiene que fallar
+  si no ejecuta ninguno y no puede cambiar archivos. La fase cero
+  comprueba las dos cosas: excluye un momento la carpeta de aceptación, y
+  ejecuta el gate dos veces sobre un árbol limpio con `git status` vacío.
+- `queue.sh set` se apunta en el Log y solo admite PENDING y BLOCKED: DONE
+  pasa siempre por `done`, IN PROGRESS por `start`.
+- Los commits de `queue.sh` que solo llevan `STATUS.md` o
+  `docs/DECISIONES.md` se saltan los hooks de git del proyecto; `done`,
+  `block`, `recover` y `restore-outside`, que llevan código, los ejecutan.
+- La fase cero mete en `.gitignore` `.DS_Store`, los archivos de
+  intercambio de los editores (`*.swp`, `*~`), `.vite/`, `__pycache__/` y
+  `coverage/`, para que nunca cuenten como fuera de tarea, y una tarea que
+  necesita una dependencia de desarrollo lista `package.json` y el
+  lockfile entre sus archivos.
+- El orquestador sigue los candados: registra cada veredicto de QA con
+  `queue.sh qa`, devuelve los archivos de un worker que se salió de su
+  tarea (`restore-outside`) antes del arreglo y ya no lanza el gate antes
+  de `done`, que lo ejecuta él. Las salidas 6 y 7 de `done` van al camino
+  del arreglo; con 8 repite la QA que se indica.
+- Mientras trabaja un worker, `lanzar-worker.sh` y `vigilar-worker.sh`
+  ponen también `.desatendido/` en solo lectura, para que un worker no
+  pueda cambiar los scripts que juzgan su trabajo.
+
+### Corregido
+- Un cambio fuera de tarea (por ejemplo `package.json` con un script de
+  test que solo hace `exit 0`) sobrevivía a un arreglo y entraba en el
+  commit de DONE, porque el segundo worker se medía contra el árbol que el
+  primero ya había cambiado. Ahora cada tarea se mide contra el commit del
+  que partió.
+- `block` y `recover` solo guardaban en un stash los cambios sin commit:
+  los commits de un worker se quedaban dentro, con el código roto.
+- `done` cerraba una tarea sin que se hubieran ejecutado el gate ni la QA.
+- `start` arrancaba una tarea cuya dependencia seguía PENDING.
+- Una vuelta colgada de `bucle.sh` no se cortaba nunca, y `lanzadores.md`
+  decía que `MAX_HOURS` la limitaba.
+- Tras una sesión cortada entre `vigilar-worker.sh begin` y `end`, los
+  tests se quedaban en solo lectura y `recover` fallaba. Ahora primero les
+  devuelve el permiso de escritura.
+- 353 tests.
+
+### Limitaciones conocidas
+- Si el propio gate ejecuta un comando de `queue.sh` que hace commit (por
+  ejemplo `queue.sh note`), `done` devuelve HEAD y `STATUS.md` pero no el
+  estado de confianza de la cola, y los siguientes comandos se niegan con
+  6. Un gate solo debería llamar a `queue.sh tests`.
+- Con `STATUS_FILE` o `DECISIONS_FILE` en una ruta con espacios, `recover`
+  no puede devolver esos archivos. La fase cero usa siempre `STATUS.md` y
+  `docs/DECISIONES.md`.
+- Cambiar a otra rama que ya existía en el mismo worktree durante una
+  tarea: `recover` aplica el estado de la cola de la rama en la que empezó
+  la tarea y devuelve los archivos de la tarea a como estaban al empezar,
+  en la rama nueva (antes guarda todo en una rama de copia).
+- Los candados cazan errores, no sabotajes deliberados: un worker que se
+  da permiso de escritura en `.desatendido/` y edita `queue.sh`, mueve
+  `refs/worktree/queue-state` con `git update-ref` o reescribe la historia
+  con `git reset --hard` puede saltárselos.
+
 ## [8.7.2] - 2026-10-08
 
 Notas de la cola en el Log.
@@ -294,6 +394,7 @@ Primera versión, como **modo-nocturno**.
 - Comprobaciones al arrancar: jq, Orca, estar dentro de una terminal de
   Orca, permisos de opencode, fusibles y cola vacía.
 
+[8.8.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.8.0
 [8.7.2]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.2
 [8.7.1]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.1
 [8.7.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.0

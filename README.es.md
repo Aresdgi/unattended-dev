@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="CHANGELOG.es.md"><img src="https://img.shields.io/badge/versión-8.7.2-7c3aed?style=for-the-badge" alt="versión 8.7.2"></a>
+  <a href="CHANGELOG.es.md"><img src="https://img.shields.io/badge/versión-8.8.0-7c3aed?style=for-the-badge" alt="versión 8.8.0"></a>
   <img src="https://img.shields.io/badge/estado-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="tests de los scripts"></a>
   <a href="#licencia"><img src="https://img.shields.io/badge/licencia-MIT-22c55e?style=for-the-badge" alt="licencia MIT"></a>
@@ -179,15 +179,16 @@ bloquear la tarea o dar una orden más clara.
   <img src=".github/assets/task.es.svg" alt="Cada tarea: queue.sh next y start, el worker, el gate y la QA, arreglos como mucho dos veces, y queue.sh done o block" width="640">
 </p>
 
-- **Gate**: guardia de tests, typecheck, tests y build.
+- **Gate**: guardia de tests, typecheck, tests y build, en
+  `.desatendido/gate.sh`. `queue.sh done` lo ejecuta él mismo antes de cerrar.
 - **QA**: en solo lectura, una por tipo. *Fidelidad* (hace lo que pide la
   SPEC, nada inventado), *técnica* (errores, casos límite, seguridad) y
   *diseño* (capturas en móvil y escritorio, estados vacío y error,
   accesibilidad).
 
 Si la sesión se corta (cuota, portátil dormido…), se vuelve a lanzar igual:
-lo que quedó a medias de la tarea IN PROGRESS se guarda en un stash y esa
-tarea vuelve a empezar desde limpio.
+lo que quedó a medias de la tarea IN PROGRESS se guarda en una rama de
+copia y esa tarea vuelve a empezar desde limpio.
 
 ## 🌙 Lanzamiento automático
 
@@ -300,8 +301,10 @@ da por hecha una tarea que aún tiene su test en skip.
 Toma las **decisiones mecánicas** con código, no con el modelo: la
 siguiente tarea, las dependencias, propagar los BLOCKED, quitar el skip al
 empezar una tarea, **cerrar** una tarea en un solo paso atómico y
-**recuperar** una tarea que se cortó. Cada cambio de estado lleva su
-commit, así que un stash nunca puede deshacerlo.
+**recuperar** una tarea que se cortó. Cada tarea se mide contra el commit
+del que partió: `done` se niega si tocó archivos fuera de su lista, si el
+gate falla o si no hay QA PASS para el código exacto que se cierra. Cada
+cambio de estado lleva su commit.
 
 </td>
 <td width="25%" valign="top">
@@ -310,14 +313,14 @@ commit, así que un stash nunca puede deshacerlo.
 
 Mantiene vivo al orquestador si su herramienta no tiene objetivo nativo:
 una tarea por vuelta, elegida por `queue.sh`, con el contexto limpio, hasta
-vaciar la cola o llegar al límite de horas.
+vaciar la cola o llegar al límite de horas. Una vuelta que se cuelga se corta.
 
 </td>
 </tr>
 </table>
 
 Y **`vigilar-worker.sh`**: las mismas protecciones que `lanzar-worker.sh`
-(tests en solo lectura, archivos tocados fuera de la tarea) en dos pasos,
+(tests y `.desatendido/` en solo lectura, archivos tocados fuera de la tarea) en dos pasos,
 `begin` y `end`, para workers que arrancan y terminan por su cuenta, como
 los de Orca.
 
@@ -328,23 +331,26 @@ los de Orca.
 # La cola: siguiente tarea, empezarla (quita el skip de su test) y cerrarla
 .desatendido/queue.sh next            # -> T01
 .desatendido/queue.sh start T01
-.desatendido/queue.sh done T01 "resumen"   # DONE + commit, de una vez
-.desatendido/queue.sh block T01 "motivo"   # stash + BLOCKED, de una vez
+.desatendido/queue.sh qa T01 fidelity PASS "resumen"  # veredicto de QA para el código tal como está
+.desatendido/queue.sh done T01 "resumen"   # comprueba, y DONE + commit, de una vez
+.desatendido/queue.sh block T01 "motivo"   # rama de copia + archivos de vuelta + BLOCKED, de una vez
 .desatendido/queue.sh fix T01 "motivo"     # cuenta un arreglo; sale con 5 si no quedan
 .desatendido/queue.sh decide T01 "regla"   # apunta una decisión por defecto, +1 arreglo
 .desatendido/queue.sh note "texto"         # una línea libre en el Log
+.desatendido/queue.sh outside T01          # archivos fuera de la tarea desde que empezó
+.desatendido/queue.sh restore-outside T01  # los devuelve (queda una copia en una rama)
 
 # Un worker, con sus archivos permitidos y los tests en solo lectura
 .desatendido/lanzar-worker.sh implements T01 \
   --allowed "src/dni.ts" --readonly "tests/acceptance" -- \
   opencode run -m <proveedor/modelo> "Implement task T01 of PLAN.md…"
 
-# La guardia, al principio del gate, vigilando las tareas empezadas y DONE
+# El gate (.desatendido/gate.sh) empieza con la guardia, vigilando las tareas empezadas y DONE
 .desatendido/guardia-tests.sh fase-cero tests/acceptance $(.desatendido/queue.sh tests) \
   && npm run typecheck && npm test && npm run build
 
-# El bucle externo: máximo 4 horas y parada limpia
-MAX_HOURS=4 .desatendido/bucle.sh
+# El bucle externo: máximo 4 horas, 1 hora por vuelta, y parada limpia
+MAX_HOURS=4 ROUND_TIMEOUT=3600 .desatendido/bucle.sh
 touch AGENT_STOP   # para al terminar la vuelta en curso
 ```
 
@@ -355,10 +361,26 @@ touch AGENT_STOP   # para al terminar la vuelta en curso
 | `124` | **TIMEOUT**: superó el límite (20 minutos por defecto) |
 | `128+N` | **KILLED**: el worker se paró por la señal N |
 
+| `queue.sh` sale con | Significa |
+| :-: | --- |
+| `3` | Uso o estado incorrecto: por ejemplo `start` con una dependencia que no está DONE u otra tarea IN PROGRESS |
+| `4` | Falló un paso de git; no se marcó nada |
+| `5` | No quedan arreglos ni decisiones: hay que bloquear la tarea |
+| `6` | Archivos fuera de la tarea desde que empezó (`outside`, `done`). También `fix`, `decide`, `note`, `qa` y `set` si `STATUS.md` tiene cambios que no hizo `queue.sh` |
+| `7` | `done`: el gate falló (imprime las últimas 20 líneas) o cambió archivos (se devuelven a su estado) |
+| `8` | `done`: falta un QA PASS de algún tipo para el código tal como está |
+
+Los commits de `queue.sh` que solo llevan `STATUS.md` o
+`docs/DECISIONES.md` (`start`, `fix`, `decide`, `note`, `qa`, `set`) se
+saltan los hooks de git del proyecto (`--no-verify`). `done`, `block`,
+`recover` y `restore-outside` llevan código y los ejecutan.
+
 `bucle.sh` recupera cualquier tarea que se quedara IN PROGRESS antes de
 empezar, y se para solo si la cola se vacía, si ninguna tarea puede
 empezar, si existe `AGENT_STOP`, si se pasa de `MAX_ROUNDS` o `MAX_HOURS`,
-o si una vuelta termina sin que su tarea quede DONE o BLOCKED.
+o si una vuelta termina sin que su tarea quede DONE o BLOCKED. Una vuelta
+que pasa de `ROUND_TIMEOUT` (o del tiempo que quede de `MAX_HOURS`) se
+corta, su tarea vuelve a PENDING y el bucle se para con 124.
 
 </details>
 
@@ -374,14 +396,17 @@ bash tests/run.sh
 Cubre las trampas encontradas en la revisión (una comprobación borrada junto
 a un skip, un archivo prohibido modificado y con commit, un worker matado
 por una señal), la recuperación de la cola cuando se corta una sesión, que
-el estado de la cola sobreviva a un stash o a un paso de git que falla, y
-que tus propios cambios nunca acaben dentro de una tarea.
+el estado de la cola sobreviva a un bloqueo o a un paso de git que falla, y
+que tus propios cambios nunca acaben dentro de una tarea. También un cambio
+fuera de tarea que sobrevive a un arreglo, un worker que hace commit de
+código roto antes de un bloqueo, un `done` sin gate ni QA, un QA PASS para
+código que cambió después y una vuelta que se cuelga.
 
 ## 📁 Lo que deja en tu proyecto
 
 ```text
 mi-proyecto/
-├── .desatendido/            scripts de arriba
+├── .desatendido/            scripts de arriba, gate.sh y los archivos permitidos de cada tarea
 ├── docs/
 │   ├── SPEC.md              1 o 2 páginas: qué hace, entradas, errores, límites
 │   ├── tareas/Txx.md        solo en modo completo
@@ -394,7 +419,9 @@ mi-proyecto/
 ```
 
 Todo queda en un commit `fase cero` con el tag `fase-cero`, que es la
-referencia contra la que la guardia compara los tests.
+referencia contra la que la guardia compara los tests. Durante la cola, el
+trabajo de una tarea bloqueada o interrumpida se guarda en una rama
+`queue/backup/<tarea>-<fecha>`.
 
 ## 🔒 Reglas de seguridad
 
@@ -530,8 +557,10 @@ borrarlos y espera tu OK.
 Tiene dos intentos de arreglo, que cuenta `queue.sh`. Si el problema es un
 hueco de la SPEC y la autonomía es proactiva, apunta una regla prudente en
 `docs/DECISIONES.md`, que le da un arreglo más. Si sigue fallando, queda
-**BLOCKED** con el motivo en el Log, sus cambios se guardan en un
-`git stash` y el orquestador sigue con la siguiente. Las tareas que
+**BLOCKED** con el motivo en el Log, su trabajo se guarda en una rama
+`queue/backup/` (sus archivos vuelven a como estaban antes de la tarea,
+incluso lo que el worker llegó a commitear) y el orquestador sigue con la
+siguiente. Las tareas que
 dependían de ella también quedan bloqueadas. En la revisión repasáis
 primero las decisiones, y te propone si arreglar la tarea, la SPEC o los
 tests, con supervisión.
@@ -544,9 +573,11 @@ tests, con supervisión.
 <br/>
 
 Lo tiene prohibido, y además se lo ponemos difícil: los workers reciben los
-tests en solo lectura, quien quita el skip es `queue.sh` y la guardia
-revisa cada gate, así que cambiar una comprobación, añadir un skip o borrar
-un test lo tumba. Los scripts cazan las trampas habituales, pero no son un
+tests y los scripts de `.desatendido/` en solo lectura, quien quita el skip
+es `queue.sh` y la guardia revisa cada gate, así que cambiar una
+comprobación, añadir un skip o borrar un test lo tumba. Un QA PASS solo
+vale para el código que revisó, y `queue.sh done` ejecuta el gate él
+mismo. Los scripts cazan las trampas habituales, pero no son un
 entorno aislado; por eso la revisión final vuelve a comprobar los tests.
 
 </details>

@@ -1,6 +1,6 @@
 ## Workers: Orca
 
-<!-- unattended-dev v8.7. Phase zero pastes this block into ORQUESTADOR.md, in place of {WORKERS}, when the worker launcher is Orca. -->
+<!-- unattended-dev v8.8. Phase zero pastes this block into ORQUESTADOR.md, in place of {WORKERS}, when the worker launcher is Orca. -->
 
 Each worker runs in its own Orca tab, so the user can watch it, and its
 tab is closed as soon as it is no longer needed. Never use
@@ -51,7 +51,9 @@ tab is closed as soon as it is no longer needed. Never use
 4. When its `worker_done` arrives:
    `.desatendido/vigilar-worker.sh end <role> <Txx> --allowed "<task files>"`
    (QA: no `--allowed`). Exit 3 is OUT OF TASK: the worker **failed**,
-   whatever it reported. `--outcome failed` is a failure too.
+   whatever it reported; `.desatendido/queue.sh restore-outside <Txx>`
+   before the fix. `--outcome failed` is a failure too. Between `begin`
+   and `end`, `.desatendido/` is read-only too.
 
 ### Fixes reuse the implementer's tab
 

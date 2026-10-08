@@ -132,7 +132,9 @@ stop command of the mechanism (`claude stop <id>`, `tmux kill-session -t
 nohup sh -c 'sleep $(( <HOURS> * 3600 + 1800 )); <stop command>' >/dev/null 2>&1 & echo $! > logs/fuse.pid
 ```
 
-`bucle.sh` needs no fuse: `MAX_HOURS` already bounds it. A task cut off
+`bucle.sh` needs no fuse: it cuts every round at `ROUND_TIMEOUT` seconds
+(1 hour by default) or at the time left of `MAX_HOURS`, whichever comes
+first, puts that round's task back to PENDING and stops. A task cut off
 by the fuse goes back to PENDING on the next launch (`queue.sh recover`).
 
 `-s` only works on AC power. Tell the user to keep the Mac plugged in:

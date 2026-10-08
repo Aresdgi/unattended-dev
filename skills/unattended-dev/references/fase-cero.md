@@ -20,10 +20,46 @@ starting.
   exist as stubs with their signatures.
 - Copy `assets/desatendido/` to `.desatendido/` and make the scripts
   executable.
-- A gate command that starts with the guard and goes on with typecheck,
-  tests and build. For example:
-  `.desatendido/guardia-tests.sh fase-cero tests/acceptance $(.desatendido/queue.sh tests) && npm run typecheck && npm test && npm run build`
-- `.gitignore` with `logs/` and `AGENT_STOP`.
+- The gate, in `.desatendido/gate.sh` (executable): it starts with the
+  guard and goes on with typecheck, tests and build. `queue.sh done` runs
+  it itself before closing a task. It runs the acceptance tests of
+  `queue.sh tests` by name, so a change in the runner configuration
+  cannot leave them out, and it must fail if it runs no acceptance test
+  while `queue.sh tests` lists some.
+  For example:
+
+  ```bash
+  #!/usr/bin/env bash
+  set -e
+  tests=$(.desatendido/queue.sh tests)
+  .desatendido/guardia-tests.sh fase-cero tests/acceptance $tests
+  npm run typecheck
+  if [ -n "$tests" ]; then npx vitest run $tests; fi  # vitest fails if it finds none of them
+  npm test && npm run build
+  ```
+
+  Check it once: exclude the acceptance folder in the runner configuration
+  for a moment (for example `exclude` in `vitest.config.ts`), run the
+  acceptance step of the gate on one test by name (`npx vitest run
+  tests/acceptance/T01.test.ts`), see that it fails because it runs no
+  test, and undo the exclusion.
+
+  The gate must not change files either: `queue.sh done` refuses (exit
+  7) when it does, and puts them back. Check it: on a clean tree, run
+  `.desatendido/gate.sh` twice and `git status --porcelain` must still
+  print nothing. If not, add to `.gitignore` what it generates (`dist/`,
+  `coverage/`, `*.tsbuildinfo`, screenshots...) or take the `--fix` and
+  `--write` flags out of the gate. Otherwise every `done` exits with 7
+  and the whole queue stops.
+
+  The project's git hooks (husky, lint-staged...) run on the commits of
+  `queue.sh` that carry code (`done`, `block`, `recover`,
+  `restore-outside`); a hook that fails stops the queue with exit 4. Its
+  commits that only carry `STATUS.md` or `docs/DECISIONES.md` skip them
+  (`--no-verify`).
+- `.gitignore` with `logs/`, `AGENT_STOP` and the usual files that would
+  otherwise count as out of task or block `queue.sh start`:
+  `.DS_Store`, `*.swp`, `*~`, `.vite/`, `__pycache__/`, `coverage/`
 - Dev dependencies only unless the SPEC says otherwise. If a version
   breaks something, pin it and note it in `AGENTS.md`.
 - With a UI: Playwright installed and a screenshot test on mobile and
@@ -40,6 +76,16 @@ starting.
 - `STATUS.md` from `assets/STATUS.md`, with each task's test path in
   the Test column. Check it with `.desatendido/queue.sh next` (it must
   print the first task).
+- For each task, `.desatendido/allowed/Txx` with its "Files it may touch"
+  from the plan, one path per line (a folder ends in `/`). Its test,
+  `STATUS.md` and `docs/DECISIONES.md` need not be listed. `queue.sh`
+  measures every task against these lists, as they were when the task
+  started: a task without one does not start. A task that needs a
+  development dependency must list `package.json` and the lockfile (or
+  their equivalents in the stack), here and in the plan.
+- For a task whose plan asks for design QA,
+  `.desatendido/qa/Txx` with `fidelity technical design`. Without the
+  file, `queue.sh done` asks for fidelity and technical.
 - Compute the values of the cases with a script, not from memory.
 
 ## 2b. Adversarial review of the SPEC
@@ -76,8 +122,8 @@ the queue removes the skip and they are read-only while you work". If Claude is 
 
 ## 5. Orchestrator and team
 
-- `ORQUESTADOR.md` from `assets/ORQUESTADOR.md`, with the real commands
-  for each role (`references/lanzadores.md`). Replace `{WORKERS}` with
+- `ORQUESTADOR.md` from `assets/ORQUESTADOR.md` (the gate is always
+  `.desatendido/gate.sh`), with the real commands for each role (`references/lanzadores.md`). Replace `{WORKERS}` with
   the block of the launcher the user chose: `assets/workers-cli.md` or
   `assets/workers-orca.md`, never the other, and fill in its values.
 - **The chosen launcher is kept.** If it cannot be used (for example
@@ -97,11 +143,15 @@ the queue removes the skip and they are read-only while you work". If Claude is 
 - **Smoke test** of every role **with the chosen launcher** (with Orca:
   `worker-start`, read the answer with `worker-read`, then
   `worker-release`). Show it in a table: role, launcher, expected model,
-  answer.
+  answer. Add two rows for the gate: "acceptance folder excluded in the
+  runner configuration", expected "the gate fails"; and "gate run twice
+  on a clean tree", expected "`git status` still empty". Each with what
+  it did.
 
 ## 6. Approval and commit
 
 Summarize in a few lines: files created, gate (with the guard), verified
-tests and smoke test. With the user's OK: commit "fase cero", tag
+tests and smoke test. `.desatendido/` (scripts, `gate.sh`, `allowed/` and
+`qa/`) goes in the commit. With the user's OK: commit "fase cero", tag
 `fase-cero` and push (private repo unless they say otherwise). No `.env`,
 keys or logs in the commit.

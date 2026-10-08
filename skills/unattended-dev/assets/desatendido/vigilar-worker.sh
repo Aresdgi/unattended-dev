@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# unattended-dev v8.7: the protections around one worker, in two steps, for
+# unattended-dev v8.8: the protections around one worker, in two steps, for
 # workers that start and finish on their own (for example Orca workers).
 # lanzar-worker.sh uses the same two steps around the command it runs.
 #
 # Usage (from the project root):
 #   vigilar-worker.sh begin <role> <task> [--readonly "tests/acceptance ..."]
 #       Before the worker starts: take a snapshot of the tree and HEAD, and
-#       make the --readonly paths read-only while the worker runs.
+#       make the --readonly paths read-only while the worker runs. The
+#       folder of these scripts (.desatendido/) is always made read-only
+#       too, so a worker cannot change the scripts that judge its work.
 #   vigilar-worker.sh end <role> <task> [--allowed "src/a.ts docs/ ..."]
 #       After the worker settles: restore write permission and list every
 #       file it touched outside --allowed, committed or not.
@@ -17,7 +19,7 @@
 set -u
 
 cmd="${1:-}"; role="${2:-}"; task="${3:-}"
-[ -n "$cmd" ] && [ -n "$role" ] && [ -n "$task" ] || { sed -n "2,18p" "$0"; exit 2; }
+[ -n "$cmd" ] && [ -n "$role" ] && [ -n "$task" ] || { sed -n "2,19p" "$0"; exit 2; }
 shift 3
 allowed=""; readonly_paths=""
 while [ $# -gt 0 ]; do
@@ -45,6 +47,7 @@ case "$cmd" in
     mkdir -p "$state"
     git rev-parse -q --verify HEAD > "$state/head" 2>/dev/null || echo none > "$state/head"
     snapshot > "$state/snapshot"
+    readonly_paths="$(dirname "$0") $readonly_paths"
     printf '%s\n' $readonly_paths > "$state/readonly"
     for p in $readonly_paths; do [ -e "$p" ] && chmod -R a-w "$p"; done
     exit 0 ;;
@@ -74,5 +77,5 @@ case "$cmd" in
     if [ -n "$outside" ]; then echo "OUT OF TASK:$outside"; exit 3; fi
     exit 0 ;;
   *)
-    sed -n "2,18p" "$0"; exit 2 ;;
+    sed -n "2,19p" "$0"; exit 2 ;;
 esac

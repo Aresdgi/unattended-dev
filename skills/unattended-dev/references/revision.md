@@ -31,8 +31,16 @@ Do it with the user when they come back with the result. {TAG} is
    logs/fuse.pid)` if they are still alive). Close them. If there was an external loop, check
    `logs/bucle-*.log` and delete `AGENT_STOP` if it was left behind. If a
    worker exited with 3 (OUT OF TASK) or 124 (TIMEOUT), look at its log.
-8. BLOCKED tasks: `git stash list`. Read the reason in STATUS.md and
-   propose whether to fix the task, the SPEC or the tests (supervised).
+8. BLOCKED tasks: their work is in a backup branch, named in the Log
+   (`git branch --list 'queue/backup/*'`, then `git diff <task start>
+   queue/backup/<Txx>-<date>`). Read the reason in STATUS.md and propose
+   whether to fix the task, the SPEC or the tests (supervised). Once
+   nobody needs a backup branch, it can be deleted with `git branch -D`.
+   To send a task back to the queue: `.desatendido/queue.sh set Txx
+   PENDING`. `set` only takes PENDING and BLOCKED: DONE always goes
+   through `queue.sh done` (allowed files, gate and QA). If the user
+   finishes a task by hand, supervised, they edit its row in STATUS.md
+   to DONE and commit it themselves.
 9. **Launcher**: the one in `ORQUESTADOR.md` must be the one the user
    chose. With Orca, `orca orchestration worker-list --run <run_id>
    --terminal-state reclaimable --json` returns none, and no worker tabs

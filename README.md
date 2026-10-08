@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-8.7.2-7c3aed?style=for-the-badge" alt="version 8.7.2"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-8.8.0-7c3aed?style=for-the-badge" alt="version 8.8.0"></a>
   <img src="https://img.shields.io/badge/status-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="script tests"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="MIT license"></a>
@@ -178,14 +178,15 @@ decide between blocking the task and giving a clearer order.
   <img src=".github/assets/task.svg" alt="Each task: queue.sh next and start, the worker, the gate and QA, fixes at most twice, and queue.sh done or block" width="640">
 </p>
 
-- **Gate**: test guard, typecheck, tests and build.
+- **Gate**: test guard, typecheck, tests and build, in
+  `.desatendido/gate.sh`. `queue.sh done` runs it itself before closing.
 - **QA**: read-only, one per type. *Fidelity* (does what the SPEC asks,
   nothing invented), *technical* (bugs, edge cases, security) and *design*
   (mobile and desktop screenshots, empty and error states, accessibility).
 
 If the session gets cut off (quota, laptop asleep…), launch it again the
-same way: the half-done work of the task left IN PROGRESS goes to a stash
-and that task starts again from a clean state.
+same way: the half-done work of the task left IN PROGRESS goes to a backup
+branch and that task starts again from a clean state.
 
 ## 🌙 Automatic launch
 
@@ -298,8 +299,10 @@ tests, or marks a task done while its test is still skipped.
 Makes the **mechanical decisions** in code, not in the model: the next
 task, dependencies, BLOCKED propagation, removing the skip when a task
 starts, **closing** a task in one atomic step and **recovering** a task
-that was cut off. Every state change is committed, so a stash can never
-undo it.
+that was cut off. Each task is measured against the commit it started
+from: `done` refuses if it touched files outside its list, if the gate
+fails or if there is no QA PASS for the exact code being closed. Every
+state change is committed.
 
 </td>
 <td width="25%" valign="top">
@@ -308,14 +311,14 @@ undo it.
 
 Keeps the orchestrator alive if its tool has no native goal: one task per
 round, chosen by `queue.sh`, with a clean context, until the queue is empty
-or the hour limit is reached.
+or the hour limit is reached. A round that hangs is cut off.
 
 </td>
 </tr>
 </table>
 
 And **`vigilar-worker.sh`**: the same protections as `lanzar-worker.sh`
-(tests read-only, files touched outside the task) in two steps, `begin`
+(tests and `.desatendido/` read-only, files touched outside the task) in two steps, `begin`
 and `end`, for workers that start and finish on their own, such as Orca
 workers.
 
@@ -326,23 +329,26 @@ workers.
 # The queue: next task, start it (removes the skip of its test), finish it
 .desatendido/queue.sh next            # -> T01
 .desatendido/queue.sh start T01
-.desatendido/queue.sh done T01 "summary"    # DONE + commit, in one step
-.desatendido/queue.sh block T01 "reason"    # stash + BLOCKED, in one step
+.desatendido/queue.sh qa T01 fidelity PASS "summary"  # QA verdict for the code as it is now
+.desatendido/queue.sh done T01 "summary"    # checks, then DONE + commit, in one step
+.desatendido/queue.sh block T01 "reason"    # backup branch + files back + BLOCKED, in one step
 .desatendido/queue.sh fix T01 "reason"      # counts a fix; exit 5 when none are left
 .desatendido/queue.sh decide T01 "rule"     # records a default decision, +1 fix
 .desatendido/queue.sh note "text"           # a free line in the Log
+.desatendido/queue.sh outside T01           # files out of the task since it started
+.desatendido/queue.sh restore-outside T01   # puts them back (a copy stays in a branch)
 
 # A worker, with its allowed files and the tests read-only
 .desatendido/lanzar-worker.sh implements T01 \
   --allowed "src/dni.ts" --readonly "tests/acceptance" -- \
   opencode run -m <provider/model> "Implement task T01 of PLAN.md…"
 
-# The guard, at the start of the gate, watching the started and DONE tasks
+# The gate (.desatendido/gate.sh) starts with the guard, watching the started and DONE tasks
 .desatendido/guardia-tests.sh fase-cero tests/acceptance $(.desatendido/queue.sh tests) \
   && npm run typecheck && npm test && npm run build
 
-# The external loop: 4 hours max and a clean stop
-MAX_HOURS=4 .desatendido/bucle.sh
+# The external loop: 4 hours max, 1 hour per round, and a clean stop
+MAX_HOURS=4 ROUND_TIMEOUT=3600 .desatendido/bucle.sh
 touch AGENT_STOP   # stops at the end of the current round
 ```
 
@@ -353,10 +359,26 @@ touch AGENT_STOP   # stops at the end of the current round
 | `124` | **TIMEOUT**: went over the limit (20 minutes by default) |
 | `128+N` | **KILLED**: the worker was stopped by signal N |
 
+| `queue.sh` exits with | Meaning |
+| :-: | --- |
+| `3` | Wrong usage or state: for example `start` with a dependency not DONE or another task IN PROGRESS |
+| `4` | A git step failed; nothing was marked |
+| `5` | No fixes or decisions left: block the task |
+| `6` | Files outside the task since it started (`outside`, `done`). Also `fix`, `decide`, `note`, `qa` and `set` when `STATUS.md` has changes `queue.sh` did not make |
+| `7` | `done`: the gate failed (it prints the last 20 lines) or changed files (they are put back) |
+| `8` | `done`: no QA PASS of each type for the code as it is now |
+
+The commits of `queue.sh` that only carry `STATUS.md` or
+`docs/DECISIONES.md` (`start`, `fix`, `decide`, `note`, `qa`, `set`) skip
+the project's git hooks (`--no-verify`). `done`, `block`, `recover` and
+`restore-outside` carry code and run them.
+
 `bucle.sh` recovers any task left IN PROGRESS before starting, and stops by
 itself if the queue is empty, if no task can start, if `AGENT_STOP` exists,
 if it goes over `MAX_ROUNDS` or `MAX_HOURS`, or if a round ends without its
-task being DONE or BLOCKED.
+task being DONE or BLOCKED. A round that goes over `ROUND_TIMEOUT` (or the
+time left of `MAX_HOURS`) is cut off, its task goes back to PENDING and the
+loop stops with 124.
 
 </details>
 
@@ -370,15 +392,17 @@ bash tests/run.sh
 
 It covers the cheats found in review (an assertion deleted together with a
 skip, a forbidden file changed and committed, a worker killed by a signal),
-queue recovery when a session is cut off, the queue state surviving a stash
+queue recovery when a session is cut off, the queue state surviving a block
 or a git step that fails, and your own changes never ending up inside a
-task.
+task. Also a change out of task that survives a fix, a worker that commits
+broken code before a block, a `done` with no gate or QA, a QA PASS for
+code that changed afterwards and a round that hangs.
 
 ## 📁 What it leaves in your project
 
 ```text
 my-project/
-├── .desatendido/            the scripts above
+├── .desatendido/            the scripts above, gate.sh and the allowed files of each task
 ├── docs/
 │   ├── SPEC.md              1 or 2 pages: what it does, inputs, errors, limits
 │   ├── tareas/Txx.md        full mode only
@@ -391,7 +415,9 @@ my-project/
 ```
 
 Everything goes into a `fase cero` commit with the `fase-cero` tag, which
-is the reference the guard compares the tests against.
+is the reference the guard compares the tests against. During the queue,
+the work of a blocked or interrupted task is kept in a
+`queue/backup/<task>-<date>` branch.
 
 ## 🔒 Safety rules
 
@@ -525,8 +551,10 @@ it proposes deleting them and waits for your OK.
 It gets two fix attempts, counted by `queue.sh`. If the problem is a gap in
 the SPEC and autonomy is proactive, it records a prudent rule in
 `docs/DECISIONES.md`, which earns one more fix. If it still fails, it's
-marked **BLOCKED** with the reason in the Log, its changes are saved in a
-`git stash` and the orchestrator moves on to the next one. Tasks that
+marked **BLOCKED** with the reason in the Log, its work is saved in a
+`queue/backup/` branch (its files go back to how they were before the
+task, even what the worker committed) and the orchestrator moves on to the
+next one. Tasks that
 depended on it are blocked too. In the review you go through the decisions
 first, and it proposes whether to fix the task, the SPEC or the tests,
 supervised.
@@ -538,9 +566,11 @@ supervised.
 
 <br/>
 
-It's forbidden, and made hard on purpose: workers get the tests read-only,
-`queue.sh` is the one that removes the skip, and the guard checks every
-gate, so changing an assertion, adding a skip or deleting a test fails it.
+It's forbidden, and made hard on purpose: workers get the tests and the
+scripts in `.desatendido/` read-only, `queue.sh` is the one that removes
+the skip, and the guard checks every gate, so changing an assertion,
+adding a skip or deleting a test fails it. A QA PASS only counts for the
+code it reviewed, and `queue.sh done` runs the gate itself.
 The scripts catch the usual tricks; they are not a sandbox, which is why
 the review at the end checks the tests again.
 

@@ -10,6 +10,105 @@ Every version of unattended-dev, from the very first one. Versions from
 Earlier ones lived in a private repo, under other names: `modo-nocturno`
 (1 and 2) and `modo-desatendido` (3 to 8.1.0).
 
+## [8.8.0] - 2026-10-08
+
+Locks. The rules that keep broken or tampered work out of DONE are now
+enforced by `queue.sh`, not left to the orchestrator: if a worker or the
+orchestrator gets it wrong, the command refuses with a clear exit code.
+
+### Added
+- `queue.sh qa <task> <type> PASS|FAIL "<summary>"` records a QA verdict
+  for the exact code it reviewed.
+- `queue.sh outside <task>` lists the files a task changed since it
+  started (committed or not) that it may not touch, and
+  `queue.sh restore-outside <task>` puts them back, with a copy in a
+  backup branch.
+- `con-limite.sh`: a time limit for any command that stops its whole
+  process group, including what the command leaves running in the
+  background when it ends. `lanzar-worker.sh` and `bucle.sh` use it.
+- Phase zero leaves the gate in `.desatendido/gate.sh` and the files each
+  task may touch in `.desatendido/allowed/Txx` (plus `.desatendido/qa/Txx`
+  for tasks that need design QA).
+
+### Changed
+- `queue.sh done` checks before closing: nothing outside the task (exit
+  6), the gate passes and changes no file, staged content or commit, run
+  by `done` itself (exit 7),
+  and there is a QA PASS of each type for the code as it is now (exit 8).
+  If it refuses, the task stays IN PROGRESS and the tree is as it was:
+  whatever the gate changed is put back. So the DONE commit is always the
+  code the QA saw. If the gate switches branch, `done` stops with 4
+  without moving any reference.
+- While a task is IN PROGRESS, `STATUS.md` and `docs/DECISIONES.md` must
+  be exactly as `queue.sh` left them. Otherwise `fix`, `decide`, `note`,
+  `qa` and `set` refuse (exit 6) instead of committing someone else's
+  change, and `recover` rebuilds the table even if a worker emptied or
+  deleted it.
+- `queue.sh start` refuses if a dependency is not DONE, if another task is
+  IN PROGRESS or if the task has no allowed list.
+- `block` and `recover` keep the task's work in a
+  `queue/backup/<task>-<date>` branch instead of a stash, and put every
+  file the task touched back as it was when it started, including what
+  the worker committed. The history is not rewritten.
+- `bucle.sh` cuts each round at `ROUND_TIMEOUT` (1 hour by default) or at
+  the time left of `MAX_HOURS`; the task goes back to PENDING and the
+  loop stops with 124.
+- The gate runs the acceptance tests by name and has to fail if it runs
+  none, and it must not change files. Phase zero checks both: it excludes
+  the acceptance folder for a moment, and it runs the gate twice on a
+  clean tree with `git status` still empty.
+- `queue.sh set` writes itself in the Log and only takes PENDING and
+  BLOCKED: DONE always goes through `done`, IN PROGRESS through `start`.
+- The commits of `queue.sh` that only carry `STATUS.md` or
+  `docs/DECISIONES.md` skip the project's git hooks; `done`, `block`,
+  `recover` and `restore-outside`, which carry code, run them.
+- Phase zero puts `.DS_Store`, editor swap files (`*.swp`, `*~`),
+  `.vite/`, `__pycache__/` and `coverage/` in `.gitignore`, so they never
+  count as out of task, and a task that needs a development dependency
+  lists `package.json` and the lockfile among its files.
+- The orchestrator follows the locks: it records every QA verdict with
+  `queue.sh qa`, puts back the files of a worker that went out of its
+  task (`restore-outside`) before the fix, and no longer runs the gate
+  before `done`, which runs it. Exits 6 and 7 of `done` take the fix
+  path; with 8 it repeats the QA it names.
+- While a worker runs, `lanzar-worker.sh` and `vigilar-worker.sh` make
+  `.desatendido/` read-only too, so a worker cannot change the scripts
+  that judge its work.
+
+### Fixed
+- A change out of task (for example `package.json` with a test script
+  that is just `exit 0`) survived a fix and went into the DONE commit,
+  because the second worker was measured against the tree the first one
+  had already changed. Each task is now measured against the commit it
+  started from.
+- `block` and `recover` only stashed uncommitted changes: commits made by
+  a worker stayed in, broken code included.
+- `done` closed a task without the gate or the QA having run.
+- `start` started a task whose dependency was still PENDING.
+- A hung round of `bucle.sh` was never cut off, and `lanzadores.md` said
+  `MAX_HOURS` bounded it.
+- After a session cut off between `vigilar-worker.sh begin` and `end`, the
+  tests stayed read-only and `recover` failed. It now gives write
+  permission back first.
+- 353 tests.
+
+### Known limitations
+- If the gate itself runs a `queue.sh` command that commits (for example
+  `queue.sh note`), `done` puts back HEAD and `STATUS.md` but not the
+  queue's trusted state, and the next queue commands refuse with 6. A
+  gate should only call `queue.sh tests`.
+- With `STATUS_FILE` or `DECISIONS_FILE` set to a path with spaces,
+  `recover` cannot put those files back. Phase zero always uses
+  `STATUS.md` and `docs/DECISIONES.md`.
+- Switching to another existing branch in the same worktree during a
+  task: `recover` applies the queue state of the branch the task started
+  on and puts the task's files back as they were at its start, on the
+  new branch (everything is kept in a backup branch first).
+- The locks catch mistakes, not deliberate sabotage: a worker that gives
+  itself write permission on `.desatendido/` and edits `queue.sh`, moves
+  `refs/worktree/queue-state` with `git update-ref` or rewrites the
+  history with `git reset --hard` can get around them.
+
 ## [8.7.2] - 2026-10-08
 
 Queue notes in the Log.
@@ -289,6 +388,7 @@ First version, as **modo-nocturno** (night mode).
 - Startup checks: jq, Orca, running inside an Orca terminal, opencode
   permissions, fuses and an empty queue.
 
+[8.8.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.8.0
 [8.7.2]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.2
 [8.7.1]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.1
 [8.7.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.0

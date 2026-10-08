@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.7: launches a worker of any tool with a time limit,
+# unattended-dev v8.8: launches a worker of any tool with a time limit,
 # a full log and a warning if it touches files outside its task.
 #
 # Usage:
@@ -8,7 +8,8 @@
 # Options:
 #   --allowed "a.ts b.ts docs/"   Files or folders it may touch (default: none)
 #   --readonly "tests/acceptance" Files or folders made read-only while the worker
-#                                 runs (write permission is restored afterwards)
+#                                 runs (write permission is restored afterwards).
+#                                 .desatendido/ is always read-only while it runs.
 #   --timeout <seconds>           Time limit (default 1200 = 20 minutes)
 #   --lines <n>                   Lines from the end of the log that are shown (default 30)
 #
@@ -22,7 +23,8 @@
 #       124 if it ran out of time; 128+N if it was killed by signal N;
 #       any other code, the worker's own.
 #
-# The protections are those of vigilar-worker.sh (begin before, end after).
+# The protections are those of vigilar-worker.sh (begin before, end after)
+# and the time limit is con-limite.sh (it stops the worker's whole process group).
 # This detects changes after they happen; it does not sandbox the worker.
 set -u
 
@@ -44,23 +46,16 @@ mkdir -p logs
 log="logs/${task}-${role}-$(date +%Y%m%d-%H%M%S)-$$.log"
 
 VIGILAR="$(dirname "$0")/vigilar-worker.sh"
+LIMIT="$(dirname "$0")/con-limite.sh"
 [ -x "$VIGILAR" ] || { echo "Missing $VIGILAR" >&2; exit 2; }
+[ -x "$LIMIT" ] || { echo "Missing $LIMIT" >&2; exit 2; }
 "$VIGILAR" begin "$role" "$task" --readonly "$readonly_paths" || exit 2
 trap '"$VIGILAR" end "$role" "$task" >/dev/null 2>&1' EXIT
 
 echo "Worker ${role} ${task}: $* " | cut -c1-200
 echo "Log: ${log}"
 
-# Portable time limit (macOS has no timeout): perl with an alarm. A worker
-# killed by a signal returns 128+signal, never 0.
-perl -e '
-  my $t = shift; my $pid = fork();
-  if ($pid == 0) { setpgrp(0, 0); exec @ARGV or exit 127; }
-  local $SIG{ALRM} = sub { kill "TERM", -$pid; sleep 5; kill "KILL", -$pid; exit 124; };
-  alarm $t; waitpid($pid, 0); my $s = $?; alarm 0;
-  exit(128 + ($s & 127)) if ($s & 127);
-  exit($s >> 8);
-' "$limit" "$@" > "$log" 2>&1 < /dev/null
+"$LIMIT" "$limit" -- "$@" > "$log" 2>&1 < /dev/null
 code=$?
 trap - EXIT
 outside=$("$VIGILAR" end "$role" "$task" --allowed "$allowed")

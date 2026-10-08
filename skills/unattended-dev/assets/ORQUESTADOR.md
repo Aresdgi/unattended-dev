@@ -1,6 +1,6 @@
 # Orchestrator rules
 
-<!-- unattended-dev v8.7. Fill in the values in braces and remove what does not apply. {WORKERS} is replaced by assets/workers-cli.md or assets/workers-orca.md, whichever launcher the user chose, never the other. -->
+<!-- unattended-dev v8.8. Fill in the values in braces and remove what does not apply. {WORKERS} is replaced by assets/workers-cli.md or assets/workers-orca.md, whichever launcher the user chose, never the other. -->
 
 You coordinate, you do not implement: you never write or fix code
 yourself. The user chose the team; do not change it.
@@ -32,7 +32,7 @@ Worker launcher: **{LAUNCHER}**, chosen by the user. Use only that one.
 
 Print the time (`date`), so the time limit can be checked. Then run
 `.desatendido/queue.sh recover`: any task left IN PROGRESS was cut off,
-so its changes go to a stash and it goes back to PENDING. `queue.sh`
+so its work goes to a backup branch and it goes back to PENDING. `queue.sh`
 writes every Log line itself; you never edit STATUS.md. For anything
 else worth keeping in the Log, `.desatendido/queue.sh note "<text>"`.
 
@@ -42,18 +42,21 @@ One at a time. `.desatendido/queue.sh next` says which one (it already
 respects dependencies and marks as BLOCKED what depends on a BLOCKED
 task). Exit 1 means the queue is finished; exit 2, nothing can start.
 
-1. `.desatendido/queue.sh start Txx`: marks it IN PROGRESS and removes the
-   skip from its test.
+1. `.desatendido/queue.sh start Txx`: marks it IN PROGRESS, records the
+   commit it starts from and removes the skip from its test.
 2. Launch the role the task names (implements or design) as "Workers"
    says, with its allowed files and the tests read-only. Order to the
    worker: "Implement task Txx of {PLAN}. Do not touch the tests. Reply
-   only: OK or BLOCKED, files touched and 3 lines."
-3. Gate, with the guard watching the tests that `queue.sh tests` lists
-   (this task and the DONE ones):
-   `{GATE_WITH_TASKS}`
-   Print only the exit code and, if it fails, the last 20 lines.
-4. Read-only QA with the QA role, one per type. Answer: PASS or FAIL and
-   at most 5 lines. FAIL by default if there is no evidence.
+   only: OK or BLOCKED, files touched and 3 lines." If the worker exits
+   with 3 (OUT OF TASK), first `.desatendido/queue.sh restore-outside
+   Txx` (it puts back what it touched outside its files, with a copy in
+   a backup branch), then step 5.
+3. Read-only QA with the QA role, one per type. Answer: PASS or FAIL and
+   at most 5 lines. FAIL by default if there is no evidence. Record every
+   verdict, PASS or FAIL, with
+   `.desatendido/queue.sh qa Txx <type> PASS|FAIL "<its lines>"`, where
+   the type is `fidelity`, `technical` or `design`. A PASS only counts
+   for the code it reviewed: after any change, the QA is repeated.
 
    | QA | When | What it checks |
    | --- | --- | --- |
@@ -61,25 +64,44 @@ task). Exit 1 means the queue is finished; exit 2, nothing can start.
    | Technical | Always | Bugs, edge cases, security, dead code |
    | Design | If it touches the UI | Mobile and desktop screenshots with `{SCREENSHOTS}`, empty and error states, accessibility |
 
-5. If the gate fails, QA fails or the worker **failed** (as "Workers"
-   defines it: out of task, timeout, killed or a failed report):
+4. If every QA passed: `.desatendido/queue.sh done Txx "<summary>"`. It
+   checks the task itself and only then marks DONE and commits the work
+   and the state together. You do not run the gate before it: `done`
+   runs `.desatendido/gate.sh` (the guard watching the tests of this task
+   and the DONE ones, then the rest of the gate). If it refuses, the task
+   stays IN PROGRESS:
+   - Exit 6, files outside the task: `.desatendido/queue.sh
+     restore-outside Txx`, then step 5.
+   - Exit 7, the gate failed: it prints the last 20 lines; step 5 with
+     them. If it says instead that **the gate changed files**, that is
+     not the task's fault: stop and report it (the gate has to be fixed,
+     as phase zero says).
+   - Exit 8, QA missing, FAIL or for other code: run and record the QA
+     types it names. If one fails, step 5.
+5. If a QA fails, `done` refuses with 6 or 7, or the worker **failed**
+   (as "Workers" defines it: out of task, timeout, killed or a failed
+   report):
    - First ask yourself whether it is a **gap in the SPEC** (two reviews
      that contradict each other, or a case the SPEC does not define). If
      it is, apply "Gaps in the SPEC" below before fixing.
    - Then `.desatendido/queue.sh fix Txx "<reason>"`, and pass those lines
-     to the same role to fix; repeat the gate and the affected QA.
-     `queue.sh` counts the fixes: if it exits 5 there are none left.
+     to the same role to fix; then steps 3 and 4 again. To see the gate
+     error yourself, you may run `.desatendido/gate.sh` (print the exit
+     code and the last 20 lines). `queue.sh` counts the fixes: if it
+     exits 5 there are none left.
    - If no fixes are left, or a fix cannot work: `.desatendido/queue.sh
-     block Txx "<reason>"` (it stashes the task's work and commits
-     BLOCKED in one step).
-6. If it passes: `.desatendido/queue.sh done Txx "<summary>"` (it marks
-   DONE and commits the work and the state together).
+     block Txx "<reason>"` (it keeps the task's work in a backup branch,
+     puts its files back as they were at the start and commits BLOCKED in
+     one step).
 
-Never commit, stash or edit STATUS.md yourself: `queue.sh` does it so the
-state and the work can never drift apart. If a `queue.sh` command fails
-with exit 4, stop and report it: something in git needs a human. If
-`queue.sh start` refuses because the tree has changes that are not from
-the queue, do not commit or stash them: stop and report which files.
+Never commit, stash or edit STATUS.md or `.desatendido/` yourself:
+`queue.sh` does it so the state and the work can never drift apart. If a
+`queue.sh` command fails with exit 4, stop and report it: something in git
+needs a human. If any of them exits 6 because STATUS.md or
+`docs/DECISIONES.md` has changes it did not make, run
+`.desatendido/queue.sh restore-outside Txx` and go on. If it exits 3 (for example `start` because the tree has
+changes that are not from the queue, or `done` because there is no gate),
+do not work around it: stop and report its message.
 
 ## Gaps in the SPEC
 
@@ -114,8 +136,8 @@ Autonomy: **{AUTONOMY}**, chosen by the user.
 ## Report
 
 - On each turn or round: the line `.desatendido/queue.sh summary` prints.
-- At the end: run the gate with every DONE task and print the full
-  output, then, in {LANGUAGE}: each task's outcome, every decision you
+- At the end: run `.desatendido/gate.sh` (it watches every DONE task)
+  and print the full output, then, in {LANGUAGE}: each task's outcome, every decision you
   recorded (from `docs/DECISIONES.md`) and, for each BLOCKED task, the
   exact question the user has to answer. End with the `queue.sh summary`
   line.

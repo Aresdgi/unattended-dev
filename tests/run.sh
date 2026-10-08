@@ -179,7 +179,7 @@ check "next gives the first ready task" 0 $Q next; check_out "it is T01" "T01"
 check "start marks IN PROGRESS and removes the skip" 0 $Q start T01
 check "the started task's test has no skip" 1 grep -q "skip" tests/acceptance/T01.test.ts
 check "state reads IN PROGRESS" 0 $Q state T01; check_out "state is IN PROGRESS" "IN PROGRESS"
-check "the Log records the start commit" 0 grep -qE "T01 started at [0-9a-f]{40}" STATUS.md
+check "the Log records the start commit" 0 grep -qE "T01 started at [0-9a-f]{40}" docs/LOG.md
 check "tests lists the started task" 0 $Q tests; check_out "T01 test listed" "tests/acceptance/T01.test.ts"
 check "next skips a task whose dependency is not DONE" 0 $Q next; check_out "it is T03" "T03"
 check "set rejects an invalid state" 3 $Q set T01 FINISHED
@@ -189,7 +189,7 @@ check "T01 is still IN PROGRESS" 0 $Q state T01; check_out "T01 IN PROGRESS" "IN
 echo impl > src/T01.ts; qa_pass T01; $Q done T01 "impl" >/dev/null
 check "next now gives T02" 0 $Q next; check_out "it is T02" "T02"
 check "set BLOCKED works" 0 $Q set T02 BLOCKED
-check "set writes itself in the Log" 0 grep -q "T02 set to BLOCKED by hand" STATUS.md
+check "set writes itself in the Log" 0 grep -q "T02 set to BLOCKED by hand" docs/LOG.md
 $Q start T03 >/dev/null; echo impl > src/T03.ts; qa_pass T03; $Q done T03 "impl" >/dev/null
 check "queue finished returns 1" 1 $Q next
 $Q set T02 PENDING >/dev/null; $Q set T01 BLOCKED >/dev/null
@@ -222,7 +222,7 @@ check "block saves the task's work" 0 $Q block T02 "tests keep failing"
 check "a blocked T02 does not bring T01 back to IN PROGRESS" 0 $Q state T01; check_out "T01 still DONE" "DONE"
 check "T02 is BLOCKED" 0 $Q state T02; check_out "T02 BLOCKED" "BLOCKED"
 check "the backup branch has T02's work" 0 git cat-file -e "$(backup_of T02):src/T02.ts"
-check "the Log names the backup branch" 0 grep -q "T02 BLOCKED: tests keep failing; its work is in branch queue/backup/T02-" STATUS.md
+check "the Log names the backup branch" 0 grep -q "T02 BLOCKED: tests keep failing; its work is in branch queue/backup/T02-" docs/LOG.md
 check "the tree is clean after block" 0 bash -c '[ -z "$(git status --porcelain)" ]'
 $Q set T02 PENDING >/dev/null; $Q set T03 PENDING >/dev/null
 # done is atomic: state and work in one commit.
@@ -272,7 +272,7 @@ queue_files T01 T02
 git add -A; git commit -qm start; git tag fase-cero
 Q=".desatendido/queue.sh"
 $Q start T01 >/dev/null
-check "the Log records the start" 0 grep -q "T01 started" STATUS.md
+check "the Log records the start" 0 grep -q "T01 started" docs/LOG.md
 echo half > src/T01.ts
 check "fix 1 is allowed" 0 $Q fix T01 "gate red"; check_out "it counts" "fix 1 of 2"
 check "fix 2 is allowed" 0 $Q fix T01 "QA FAIL"; check_out "it counts" "fix 2 of 2"
@@ -287,26 +287,138 @@ check "then it is refused again" 5 $Q fix T01 "more"
 $Q decide T01 "second decision" >/dev/null
 check "a third decision is refused with 5" 5 $Q decide T01 "third"
 check "block writes the reason in the Log" 0 $Q block T01 "contradictory reviews"
-check "the Log has the BLOCKED line" 0 grep -q "T01 BLOCKED: contradictory reviews" STATUS.md
+check "the Log has the BLOCKED line" 0 grep -q "T01 BLOCKED: contradictory reviews" docs/LOG.md
 check "the decisions survive the block" 0 grep -q "second decision" docs/DECISIONES.md
 check "next writes why a dependent is blocked" 1 $Q next
-check "the Log says T02 depends on T01" 0 grep -q "T02 BLOCKED: depends on T01" STATUS.md
+check "the Log says T02 depends on T01" 0 grep -q "T02 BLOCKED: depends on T01" docs/LOG.md
 $Q set T01 PENDING >/dev/null; $Q set T02 PENDING >/dev/null
 $Q start T01 >/dev/null
 check "a new start resets the fix count" 0 $Q fix T01 "fresh start"; check_out "fix 1 of 2" "fix 1 of 2"
 mkdir -p src; echo impl > src/T01.ts; qa_pass T01
 check "done writes the Log line in the same commit" 0 $Q done T01 "implemented"
-check "the DONE line is in the committed STATUS.md" 0 bash -c 'git show HEAD:STATUS.md | grep -q "T01 DONE: implemented"'
+check "the DONE line is in the committed Log" 0 bash -c 'git show HEAD:docs/LOG.md | grep -q "T01 DONE: implemented"'
 $Q start T02 >/dev/null; mkdir -p src; echo half > src/T02.ts
 check "recover writes the interruption in the Log" 0 $Q recover
-check "the Log names the backup branch" 0 grep -q "T02 interrupted: back to PENDING; its work is in branch queue/backup/T02-" STATUS.md
+check "the Log names the backup branch" 0 grep -q "T02 interrupted: back to PENDING; its work is in branch queue/backup/T02-" docs/LOG.md
 check "fix needs the task IN PROGRESS" 3 $Q fix T02 "x"
 $Q start T02 >/dev/null; echo half > src/T02.ts
 check "note writes a free line in the Log" 0 $Q note "Orca run run_123"
-check "the note is committed" 0 bash -c 'git show HEAD:STATUS.md | grep -q "note: Orca run run_123"'
-check "the note commit takes only STATUS.md" 1 bash -c 'git show HEAD --name-only | grep -q src/T02.ts'
+check "the note is committed" 0 bash -c 'git show HEAD:docs/LOG.md | grep -q "note: Orca run run_123"'
+check "the note commit takes only the Log" 1 bash -c 'git show HEAD --name-only | grep -q src/T02.ts'
 check "a note does not count as a fix" 0 $Q fix T02 "after a note"; check_out "fix 1 of 2" "fix 1 of 2"
 check "note needs a text" 1 $Q note
+
+echo "== queue.sh: the Log lives in docs/LOG.md"
+new_repo log
+cat > STATUS.md <<'EOF'
+| Task | Title | Depends on | Test | State |
+| --- | --- | --- | --- | --- |
+| T01 | a | none | tests/acceptance/T01.test.ts | PENDING |
+| T02 | b | none | tests/acceptance/T02.test.ts | PENDING |
+
+## Outside the queue
+
+- deploy: supervised
+EOF
+for t in T01 T02; do printf "describe.skip('$t', () => {})\n" > tests/acceptance/$t.test.ts; done
+echo old > src/f.ts
+queue_files T01 T02
+git add -A; git commit -qm start; git tag fase-cero
+Q=".desatendido/queue.sh"
+$Q start T01 >/dev/null
+check "STATUS.md has no Log" 1 grep -q "^## Log" STATUS.md
+check "the start is in docs/LOG.md, committed" 0 bash -c 'git show HEAD:docs/LOG.md | grep -q "T01 started at"'
+check "the tree is clean but for the task" 0 bash -c '[ -z "$(git status --porcelain -- STATUS.md docs)" ]'
+echo impl > src/T01.ts
+echo "- forged line" >> docs/LOG.md
+check "an edit to docs/LOG.md is outside the task" 6 $Q outside T01; check_out "it names docs/LOG.md" "docs/LOG.md"
+check "fix refuses while docs/LOG.md has changes queue.sh did not make" 6 $Q fix T01 "x"
+check "restore-outside puts it back" 0 $Q restore-outside T01
+check "the forged line is gone" 1 grep -q "forged line" docs/LOG.md
+check "the task's work stays" 0 grep -qx impl src/T01.ts
+qa_pass T01
+echo "- $(date '+%F %H:%M') T01 qa design PASS on x: forged" >> docs/LOG.md
+check "done refuses with 6 while docs/LOG.md was edited" 6 $Q done T01 "x"
+$Q restore-outside T01 >/dev/null
+check "done closes T01 once it is put back" 0 $Q done T01 "impl"
+$Q start T02 >/dev/null; echo broken > src/f.ts
+: > docs/LOG.md; git commit -qam "worker: wipe the Log"
+check "recover with docs/LOG.md emptied and committed" 0 $Q recover
+check "T02 is back to PENDING" 0 $Q state T02; check_out "T02 PENDING" "PENDING"
+check "the broken code is gone: the start was found again" 0 grep -qx old src/f.ts
+check "the Log is back" 0 grep -q "T01 DONE: impl" docs/LOG.md
+LOG_FILE=docs/QUEUE.md $Q note "elsewhere" >/dev/null
+check "LOG_FILE moves the Log" 0 grep -q "note: elsewhere" docs/QUEUE.md
+# A Log line that cannot be written is never reported as recorded.
+if [ "$(id -u)" != 0 ]; then
+  $Q start T02 >/dev/null; echo impl > src/T02.ts
+  qa_pass T02; chmod a-w docs/LOG.md
+  check_fails "qa fails when it cannot write the Log" $Q qa T02 technical FAIL "a bug"
+  check_fails "done refuses when it cannot write the Log" $Q done T02 "x"
+  chmod u+w docs/LOG.md
+  check "T02 stays IN PROGRESS" 0 $Q state T02; check_out "T02 IN PROGRESS" "IN PROGRESS"
+  $Q recover >/dev/null
+fi
+# The Log is read as queue.sh committed it: a worker that overwrites it cannot hide where a task started.
+$Q start T02 >/dev/null; echo broken > src/f.ts
+echo "my worker log" > docs/LOG.md; git commit -qam "worker: its own LOG.md"
+check "block with docs/LOG.md overwritten and committed" 0 $Q block T02 "x"
+check "the broken code is gone after block" 0 grep -qx old src/f.ts
+check "the backup branch has it" 0 bash -c "git show '$(backup_of T02):src/f.ts' | grep -qx broken"
+$Q set T02 PENDING >/dev/null; $Q start T02 >/dev/null; echo impl > src/T02.ts
+echo "my worker log" > docs/LOG.md; git commit -qam "worker: its own LOG.md"
+check "restore-outside with docs/LOG.md overwritten and committed" 0 $Q restore-outside T02
+check "the Log is the queue's again" 0 grep -q "T02 started at" docs/LOG.md
+check "the task's work stays after restore-outside" 0 grep -qx impl src/T02.ts
+$Q recover >/dev/null
+# A Log whose path has spaces.
+new_repo spacelog
+cat > STATUS.md <<'EOS'
+| Task | Title | Depends on | Test | State |
+| --- | --- | --- | --- | --- |
+| T01 | a | none | tests/acceptance/T01.test.ts | PENDING |
+EOS
+printf "describe.skip('T01', () => {})\n" > tests/acceptance/T01.test.ts
+echo old > src/f.ts
+queue_files T01
+git add -A; git commit -qm start; git tag fase-cero
+export LOG_FILE="docs/queue log.md"
+$Q start T01 >/dev/null; echo broken > src/f.ts; : > "docs/queue log.md"; git commit -qam "worker: wipe"
+check "recover with a Log path that has spaces" 0 $Q recover
+check "that Log is put back" 0 grep -q "T01 started at" "docs/queue log.md"
+check "the broken code is gone with that Log" 0 grep -qx old src/f.ts
+unset LOG_FILE
+# A project from before v8.9: the Log at the end of STATUS.md, with a task half done.
+new_repo oldlog
+cat > STATUS.md <<'EOF'
+| Task | Title | Depends on | Test | State |
+| --- | --- | --- | --- | --- |
+| T01 | a | none | tests/acceptance/T01.test.ts | PENDING |
+
+## Outside the queue
+
+- deploy: supervised
+
+## Log
+
+Written by `queue.sh`: starts, fixes, decisions, DONE, BLOCKED and interruptions, one line each.
+
+EOF
+printf "describe.skip('T01', () => {})\n" > tests/acceptance/T01.test.ts
+queue_files T01
+git add -A; git commit -qm start; git tag fase-cero
+replace STATUS.md 's/\| PENDING \|$/| IN PROGRESS |/'
+printf -- '- 2026-01-01 10:00 T01 started at %s\n- 2026-01-01 10:30 T01 fix 1: old fix\n' "$(git rev-parse HEAD)" >> STATUS.md
+git commit -qam "old queue"
+Q=".desatendido/queue.sh"
+echo half > src/T01.ts
+check "the first command on an old STATUS.md works" 0 $Q fix T01 "new fix"; check_out "it counts the fixes of the old Log" "fix 2 of 2"
+check "the Log is no longer in STATUS.md" 1 grep -q "^## Log" STATUS.md
+check "what was around it stays" 0 grep -q "deploy: supervised" STATUS.md
+check "the old lines are in docs/LOG.md" 0 grep -q "T01 fix 1: old fix" docs/LOG.md
+check "the move is committed" 0 bash -c '[ -z "$(git status --porcelain -- STATUS.md docs)" ]'
+check "recover still finds where T01 started" 0 $Q recover
+check "the half-done file is gone" 1 test -e src/T01.ts
 
 echo "== queue.sh: start respects dependencies, one task at a time"
 new_repo deps
@@ -463,6 +575,34 @@ check "a task that needs design QA refuses without it" 8 $Q done T02 "x"; check_
 $Q qa T02 design PASS "screenshots fine" >/dev/null
 check "combined and design PASS: done passes" 0 $Q done T02 "implemented"
 
+echo "== queue.sh: QA by risk"
+new_repo risk
+cat > STATUS.md <<'EOF'
+| Task | Title | Depends on | Test | State |
+| --- | --- | --- | --- | --- |
+| T01 | low | none | tests/acceptance/T01.test.ts | PENDING |
+| T02 | low | none | tests/acceptance/T02.test.ts | PENDING |
+| T03 | high | none | tests/acceptance/T03.test.ts | PENDING |
+EOF
+for t in T01 T02 T03; do printf "describe.skip('$t', () => {})\n" > tests/acceptance/$t.test.ts; done
+queue_files T01 T02 T03
+mkdir -p .desatendido/qa; echo combined > .desatendido/qa/T01; echo combined > .desatendido/qa/T02
+echo "fidelity technical" > .desatendido/qa/T03
+git add -A; git commit -qm start; git tag fase-cero
+Q=".desatendido/queue.sh"
+$Q start T01 >/dev/null; echo impl > src/T01.ts; qa_pass T01
+check "low risk: separate fidelity and technical PASS also count" 0 $Q done T01 "impl"
+$Q start T02 >/dev/null; echo impl > src/T02.ts
+$Q qa T02 combined PASS "fine" >/dev/null; $Q qa T02 technical FAIL "a bug" >/dev/null
+check "low risk: a FAIL after the combined PASS refuses with 8" 8 $Q done T02 "x"; check_out "it says FAIL" "the last QA is FAIL"
+$Q qa T02 technical PASS "fixed" >/dev/null
+check "and a new PASS closes it" 0 $Q done T02 "impl"
+$Q start T03 >/dev/null; echo impl > src/T03.ts
+$Q qa T03 combined PASS "fine" >/dev/null
+check "high risk: one combined QA is not enough" 8 $Q done T03 "x"; check_out "it asks for its own fidelity review" "fidelity: needs its own review"
+qa_pass T03
+check "high risk: fidelity and technical PASS close it" 0 $Q done T03 "impl"
+
 echo "== queue.sh: only queue.sh writes STATUS.md during a task"
 new_repo trust
 cat > STATUS.md <<'EOF'
@@ -552,6 +692,7 @@ cat > .desatendido/gate.sh <<'EOF'
 if [ -f logs/gate-writes ]; then echo generated >> src/T01.ts; fi
 if [ -f logs/gate-breaks ]; then echo clobbered > src/T01.ts; echo gen > src/gen.ts; exit 1; fi
 if [ -f logs/gate-status ]; then perl -pi -e 's/IN PROGRESS/DONE/' STATUS.md; exit 1; fi
+if [ -f logs/gate-log ]; then echo "- forged by the gate" >> docs/LOG.md; exit 0; fi
 if [ -f logs/gate-stages ]; then echo C > src/T01.ts; git add src/T01.ts; exit 1; fi
 if [ -f logs/gate-commits ]; then echo D >> src/T01.ts; git add -A src; git commit -qm "gate commit"; exit 0; fi
 if [ -f logs/gate-switches ]; then git switch -q other; exit 1; fi
@@ -575,8 +716,11 @@ check "the file the gate created is gone" 1 test -e src/gen.ts
 rm -f logs/gate-breaks; touch logs/gate-status
 check "a failing gate that rewrites STATUS.md: done refuses with 7" 7 $Q done T01 "x"
 check "STATUS.md is as before the gate" 0 same_tree "$before"
+rm -f logs/gate-status; touch logs/gate-log
+check "a passing gate that writes in docs/LOG.md: done refuses with 7" 7 $Q done T01 "x"
+check "the Log is as before the gate" 0 same_tree "$before"
 check "T01 is still IN PROGRESS" 0 $Q state T01; check_out "T01 IN PROGRESS" "IN PROGRESS"
-rm -f logs/gate-status
+rm -f logs/gate-log
 echo A > src/T01.ts; git add src/T01.ts; echo impl > src/T01.ts; qa_pass T01
 before=$(tree_state)
 touch logs/gate-stages
@@ -644,6 +788,45 @@ check "the hook ran" 0 test -e logs/hook.log
 check "T01 stays IN PROGRESS" 0 $Q state T01; check_out "T01 IN PROGRESS" "IN PROGRESS"
 rm -f logs/hook-fails
 check "with a passing hook, done closes the task" 0 $Q done T01 "impl"
+# Putting the tree back must work even when a hook fails, or the queue stays stuck.
+touch logs/hook-fails; rm -f logs/hook.log
+$Q set T02 PENDING >/dev/null; $Q start T02 >/dev/null; echo half > src/T02.ts
+check "block skips the hooks: it works with a failing hook" 0 $Q block T02 "x"
+$Q set T02 PENDING >/dev/null; $Q start T02 >/dev/null; echo half > src/T02.ts
+check "recover skips them too" 0 $Q recover
+$Q start T02 >/dev/null; echo impl > src/T02.ts; echo x > notes.txt
+check "restore-outside skips them too" 0 $Q restore-outside T02
+check "no hook ran for those commits" 1 test -e logs/hook.log
+qa_pass T02
+check "done still runs them" 4 $Q done T02 "impl"
+# --no-verify does not skip every hook (prepare-commit-msg runs anyway): those commits run none.
+rm -f "$(git rev-parse --git-path hooks)/pre-commit" logs/hook.log
+printf '#!/bin/sh\necho ran >> logs/hook.log\n[ -f logs/hook-fails ] && exit 1\nexit 0\n' > "$(git rev-parse --git-path hooks)/prepare-commit-msg"
+chmod +x "$(git rev-parse --git-path hooks)/prepare-commit-msg"
+check "block with a failing prepare-commit-msg hook" 0 $Q block T02 "x"
+check "set with it" 0 $Q set T02 PENDING
+check "start with it" 0 $Q start T02
+echo half > src/T02.ts
+check "recover with it" 0 $Q recover
+$Q start T02 >/dev/null; echo impl > src/T02.ts; echo x > notes.txt
+check "restore-outside with it" 0 $Q restore-outside T02
+check "fix and note with it" 0 bash -c "$Q fix T02 x && $Q note x"
+check "that hook never ran for those commits" 1 test -e logs/hook.log
+qa_pass T02
+check "done still runs it" 4 $Q done T02 "impl"
+# Nor on the references queue.sh moves (its trusted state and the backup branches).
+rm -f "$(git rev-parse --git-path hooks)/prepare-commit-msg"
+printf '#!/bin/sh\n[ "$1" = prepared ] && [ -f logs/hook-fails ] && exit 1\nexit 0\n' > "$(git rev-parse --git-path hooks)/reference-transaction"
+chmod +x "$(git rev-parse --git-path hooks)/reference-transaction"
+check "block with a failing reference-transaction hook" 0 $Q block T02 "x"
+check "set with that hook" 0 $Q set T02 PENDING
+check "start with that hook" 0 $Q start T02
+check "the trusted state is the committed one" 0 $Q note "after start"
+echo half > src/T02.ts
+check "recover with that hook" 0 $Q recover
+check "T02 is back to PENDING with that hook" 0 $Q state T02; check_out "T02 PENDING" "PENDING"
+check "the tree is clean with that hook" 0 bash -c '[ -z "$(git status --porcelain --untracked-files=all)" ]'
+rm -f "$(git rev-parse --git-path hooks)/reference-transaction"
 
 echo "== queue.sh: recover gives back write permission"
 new_repo perms
@@ -763,6 +946,27 @@ check "after OUT OF TASK it puts the files back before the fix" 0 grep -qF 'rest
 check "the orchestrator knows the exits 6, 7 and 8 of done" 0 bash -c "grep -qF 'Exit 6' '$ORQ' && grep -qF 'Exit 7' '$ORQ' && grep -qF 'Exit 8' '$ORQ'"
 check_fails "no gate placeholder is left: the gate is .desatendido/gate.sh" grep -qF '{GATE_WITH_TASKS}' "$ORQ"
 check "both worker blocks say what to do with exit 3" 0 bash -c "grep -qF 'restore-outside' '$SKILL/assets/workers-cli.md' && grep -qF 'restore-outside' '$SKILL/assets/workers-orca.md'"
+
+echo "== the preparation runs alone, within its budget"
+check "SKILL.md sets the budget by size" 0 bash -c "grep -qF '| 1 to 3 | 5 minutes | none |' '$SKILL/SKILL.md' && grep -qF '| 4 to 8 | 15 minutes | at most 1 |' '$SKILL/SKILL.md'"
+check_fails "no approval left at the end of the preparation" grep -qF 'One, at the end of the preparation' "$SKILL/SKILL.md"
+check "the interview ends with the only confirmation" 0 grep -qF 'shall I set it up and leave it running?' "$SKILL/references/entrevista.md"
+check "the edge cases are asked in the interview" 0 grep -qF 'Edge cases' "$SKILL/references/entrevista.md"
+check_fails "phase zero has no separate adversarial review" grep -qF 'Adversarial review' "$SKILL/references/fase-cero.md"
+check "phase zero logs when the preparation started and the queue was launched" 0 bash -c "grep -qF 'preparation started' '$SKILL/references/fase-cero.md' && grep -qF 'queue launched at' '$SKILL/references/fase-cero.md'"
+check "LANZAR.md, written after the launch, is ignored" 0 grep -qF 'and `LANZAR.md`' "$SKILL/references/fase-cero.md"
+check "smoke test and dry run are recorded once per machine" 0 bash -c "grep -qF '## Checks' '$SKILL/references/equipo.md' && grep -qF 'Once per mechanism and machine' '$SKILL/references/lanzadores.md'"
+check "the role that writes is not given read-only flags" 0 grep -qF 'A read-only' "$SKILL/references/equipo.md"
+check "UI acceptance tests are Playwright assertions with its own server" 0 bash -c "grep -qF 'webServer' '$SKILL/references/fase-cero.md' && grep -qF 'Playwright test with assertions' '$SKILL/references/fase-cero.md'"
+check "the plan has a risk per task" 0 grep -qF '**Risk:** low | high' "$SKILL/assets/PLAN.md"
+check_fails "no fixed quota of cases" grep -qF 'At least 6 valid' "$SKILL/assets/PLAN.md"
+check_fails "the STATUS.md template has no Log" grep -qF '## Log' "$SKILL/assets/STATUS.md"
+check "the orchestrator runs the gate before any QA" 0 grep -qF 'The gate, before any QA' "$ORQ"
+check "it may read the diff from the first failure" 0 grep -qF 'From the first failure of a task' "$ORQ"
+check "it asks for the QA the risk says" 0 grep -qF 'one `combined` review' "$ORQ"
+check_fails "its gate line does not claim to know whether the gate changed files" grep -qF 'gate changed nothing' "$ORQ"
+check "a first worker with another model stops the queue" 0 grep -qF 'If it is another one, stop and report it' "$ORQ"
+check "the review starts with what was decided without the user" 0 grep -qF 'What was decided without the user, first' "$SKILL/references/revision.md"
 
 echo
 echo "$pass passed, $fail failed"

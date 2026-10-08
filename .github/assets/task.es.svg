@@ -40,7 +40,7 @@
 <text x="725.0" y="594.0" text-anchor="middle" font-size="19" fill="#a5adc0">máximo 2</text>
 <rect x="580" y="840" width="290" height="100" rx="18" fill="#f87171" fill-opacity=".13" stroke="#f87171" stroke-width="2.5"/>
 <text x="725.0" y="884.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">queue.sh block</text>
-<text x="725.0" y="914.0" text-anchor="middle" font-size="19" fill="#a5adc0">stash + BLOCKED, de una vez</text>
+<text x="725.0" y="914.0" text-anchor="middle" font-size="19" fill="#a5adc0">copia + BLOCKED, de una vez</text>
 <path d="M270.0,142 L270.0,196" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#m-violet)"/>
 <path d="M270.0,302 L270.0,356" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#m-violet)"/>
 <path d="M270.0,462 L270.0,516" fill="none" stroke="#4ade80" stroke-width="2.5" marker-end="url(#m-green)"/>

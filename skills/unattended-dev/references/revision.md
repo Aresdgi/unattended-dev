@@ -5,11 +5,16 @@ Do it with the user when they come back with the result. {TAG} is
 
 ## Checks
 
-1. Queue state: `.desatendido/queue.sh summary`, and the Log at the end
-   of STATUS.md.
-2. **Decisions first**: go through `docs/DECISIONES.md` with the user, one
-   by one. For each one they reject, propose how to undo it (the commit is
-   in git) and add the right rule to the SPEC.
+1. **What was decided without the user, first**: go through
+   `docs/DECISIONES.md` with them, one by one, the ones of phase zero
+   ("phase zero") and those of the queue. For each one they reject,
+   propose how to undo it (the commit is in git) and add the right rule
+   to the SPEC. Then whatever else phase zero did on its own: steps it
+   skipped or left to the queue (smoke test, dry run) and, if it went
+   over its budget, by how much (the "preparation" lines of
+   `docs/LOG.md`).
+2. Queue state: `.desatendido/queue.sh summary`, and the Log in
+   `docs/LOG.md`.
 3. Acceptance tests intact, with the tests of every DONE task:
 
    ```zsh
@@ -21,7 +26,9 @@ Do it with the user when they come back with the result. {TAG} is
    the SPEC. Write the exact command.
 6. Did the orchestrator read code or break a rule? Its final report
    lists the slips it noticed; also have the user search the session for
-   reads of `src/` or of the tests (`claude attach <id>`, `tmux attach`
+   reads of `src/` or of the tests while no task was failing (after a
+   failure it may read the diff and the failing test), and for any edit
+   of code (`claude attach <id>`, `tmux attach`
    or the log, depending on the launcher). If it kept answering "goal not
    met" after the queue finished, its goal was not the one in
    `references/lanzadores.md`.
@@ -31,9 +38,9 @@ Do it with the user when they come back with the result. {TAG} is
    logs/fuse.pid)` if they are still alive). Close them. If there was an external loop, check
    `logs/bucle-*.log` and delete `AGENT_STOP` if it was left behind. If a
    worker exited with 3 (OUT OF TASK) or 124 (TIMEOUT), look at its log.
-8. BLOCKED tasks: their work is in a backup branch, named in the Log
+8. BLOCKED tasks: their work is in a backup branch, named in `docs/LOG.md`
    (`git branch --list 'queue/backup/*'`, then `git diff <task start>
-   queue/backup/<Txx>-<date>`). Read the reason in STATUS.md and propose
+   queue/backup/<Txx>-<date>`). Read the reason in the Log and propose
    whether to fix the task, the SPEC or the tests (supervised). Once
    nobody needs a backup branch, it can be deleted with `git branch -D`.
    To send a task back to the queue: `.desatendido/queue.sh set Txx
@@ -55,7 +62,8 @@ Do it with the user when they come back with the result. {TAG} is
 | Duration | |
 | QA FAILs and fixes | |
 | Acceptance tests intact (guard) | |
-| Phase zero time and quota | |
+| Preparation: minutes (budget) and worker calls, from `docs/LOG.md` | |
+| Time the user was needed | |
 | Mode (fast or full) | |
 | Launcher (claude --bg, tmux, loop, Orca tab) | |
 | Final gate | |

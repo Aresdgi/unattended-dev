@@ -2,17 +2,42 @@
 
 Prepare the minimum for the orchestrator to work alone. Do not implement
 any task from the queue and do not create scripts of your own: use the
-ones in `.desatendido/` and, if there is a UI, a single screenshot test.
+ones in `.desatendido/`.
 
-**Fast mode:** do it all in one go and ask for a single approval at the
-end, before the commit. **Full mode:** show each step and wait for the OK.
+It starts after the confirmation and runs without stopping until the
+queue is launched (`references/lanzadores.md`). The user may have left.
 
-## 0. Before starting
+## 0. Without stopping
 
-Say in one line the mode and how long you expect it to take (fast: about
-15 minutes; full: between 30 and 60). If your tool shows the remaining
-quota, look at it: if it is not enough for phase zero, say so before
-starting.
+- **No more questions.** A doubt about the SPEC or the plan follows the
+  autonomy the user chose. Proactive: take the most prudent option, write
+  it in the SPEC marked "(default)" and add a line to
+  `docs/DECISIONES.md` (`- <date> <time> phase zero: <the rule>`), the
+  same file the queue uses. Conservative: stop and leave the question.
+- **What needs a person stops, and you say it**, never decided by
+  default: a missing tool, the orchestrator's folder not trusted, a red
+  smoke test, a dry run that fails, a launch that your own permissions
+  block. Leave `LANZAR.md` filled in with what is left to do, and the
+  reason in your last message.
+- **The budget** (`SKILL.md`) counts from the first question. Look at the
+  time at each step. If it goes over, add a line to the Log and say it in
+  the final summary; if the user wrote to you since the confirmation, ask
+  whether to go on or do it by hand.
+
+What each size runs here:
+
+| Step | 1 to 3 tasks | 4 to 8 tasks | More than 8, or full mode |
+| --- | --- | --- | --- |
+| Acceptance tests | Written by you | Written by you | Written by QA (worker calls) |
+| Verification | Fail against the stubs for the right reason | The same | Reference implementation |
+| Smoke test of each role | Recorded on this machine, or the queue checks the first worker of each role | The same | Here, unless recorded |
+| Launch dry run | Recorded, or you check that the launch started | Recorded, or here (the one worker call) | Here, unless recorded |
+| Gate checks (section 1) | Here | Here | Here |
+
+"Recorded" means a line in the Checks of
+`~/.config/modo-desatendido/equipo.md` (`references/equipo.md`): a smoke
+test of the same team in the last 7 days, or a dry run of the same
+mechanism with the same flags.
 
 ## 1. Skeleton and gate
 
@@ -38,6 +63,9 @@ starting.
   npm test && npm run build
   ```
 
+  With a UI the acceptance step is `npx playwright test $tests` (it fails
+  with "No tests found" too).
+
   Check it once: exclude the acceptance folder in the runner configuration
   for a moment (for example `exclude` in `vitest.config.ts`), run the
   acceptance step of the gate on one test by name (`npx vitest run
@@ -52,19 +80,22 @@ starting.
   `--write` flags out of the gate. Otherwise every `done` exits with 7
   and the whole queue stops.
 
-  The project's git hooks (husky, lint-staged...) run on the commits of
-  `queue.sh` that carry code (`done`, `block`, `recover`,
-  `restore-outside`); a hook that fails stops the queue with exit 4. Its
-  commits that only carry `STATUS.md` or `docs/DECISIONES.md` skip them
-  (`--no-verify`).
+  The project's git hooks (husky, lint-staged...) run only on the commit
+  of `queue.sh done`; a hook that fails stops it with exit 4. Every other
+  commit of `queue.sh` runs none of them: they only carry its
+  own files, or they put the tree back (`block`, `recover`,
+  `restore-outside`), and a failing hook must not leave the queue stuck.
 - `.gitignore` with `logs/`, `AGENT_STOP` and the usual files that would
   otherwise count as out of task or block `queue.sh start`:
-  `.DS_Store`, `*.swp`, `*~`, `.vite/`, `__pycache__/`, `coverage/`
+  `.DS_Store`, `*.swp`, `*~`, `.vite/`, `__pycache__/`, `coverage/`, `test-results/`, `playwright-report/`, and `LANZAR.md`, which you fill in after the launch
 - Dev dependencies only unless the SPEC says otherwise. If a version
   breaks something, pin it and note it in `AGENTS.md`.
-- With a UI: Playwright installed and a screenshot test on mobile and
-  desktop. If `npx playwright screenshot --help` works, use it and the
-  test is not needed.
+- With a UI: Playwright installed, and its configuration starts the
+  server itself (`webServer`): `con-limite.sh` stops whatever a worker
+  leaves running in the background, so a server started by hand is gone
+  by the time the gate runs. For the design QA screenshots,
+  `npx playwright screenshot` if its `--help` works; if not, one
+  screenshot test outside the acceptance folder.
 
 ## 2. Documents
 
@@ -73,63 +104,72 @@ starting.
 - Fast mode: `PLAN.md` from `assets/PLAN.md`. Full mode: also
   `docs/tareas/Txx.md` with the same format per task and
   `docs/cierres/PLANTILLA.md` from `assets/CIERRE.md`.
+- While writing the plan, check that the **tests do not step on each
+  other**: an acceptance test checks only the behaviour of its task,
+  never the whole output of the program if a later task will change it
+  (with protected tests, that later task could never pass). If two tasks
+  touch the same output, split them: a pure function and its test per
+  task, and the integration in the last one.
 - `STATUS.md` from `assets/STATUS.md`, with each task's test path in
   the Test column. Check it with `.desatendido/queue.sh next` (it must
   print the first task).
+- `docs/LOG.md`, the Log `queue.sh` writes in, starting with the time of
+  the first question: `# Log`, a blank line, then
+  `- <date> <time> note: preparation started (first question)`.
 - For each task, `.desatendido/allowed/Txx` with its "Files it may touch"
   from the plan, one path per line (a folder ends in `/`). Its test,
-  `STATUS.md` and `docs/DECISIONES.md` need not be listed. `queue.sh`
-  measures every task against these lists, as they were when the task
-  started: a task without one does not start. A task that needs a
+  `STATUS.md`, `docs/LOG.md` and `docs/DECISIONES.md` need not be listed.
+  `queue.sh` measures every task against these lists, as they were when
+  the task started: a task without one does not start. A task that needs a
   development dependency must list `package.json` and the lockfile (or
   their equivalents in the stack), here and in the plan.
-- For a task whose plan asks for design QA,
-  `.desatendido/qa/Txx` with `fidelity technical design`. Without the
-  file, `queue.sh done` asks for fidelity and technical.
-- Compute the values of the cases with a script, not from memory.
-
-## 2b. Adversarial review of the SPEC
-
-Before writing tests, a role that did not write the SPEC (normally QA,
-through the chosen launcher) looks for what it leaves undefined: limits
-of each input, empty and zero values, extremes that make a result
-infinite, huge or negative, overflow, rounding, inputs that contradict
-each other. Each gap comes back with a proposed rule.
-
-Resolve them now, with the user, in **one** round of questions (the
-proposals first, marked as recommended). In fast mode this is the only
-extra stop before the final approval. Update the SPEC with the answers.
-Gaps found here cost minutes; found during the queue they block tasks.
+- For each task, `.desatendido/qa/Txx` with the QA its risk asks for:
+  `combined` (low risk) or `fidelity technical` (high risk), plus
+  `design` if it touches the UI. `queue.sh done` checks it.
+- The cases of each task as `assets/PLAN.md` says (by its inputs and
+  states, not a fixed number), with the values computed by a script, not
+  from memory.
 
 ## 3. Acceptance tests
 
-1. They are written by a role that is **not** the implementer (usually
-   QA), with `lanzar-worker.sh` and the tests folder as allowed, from the
-   cases in `PLAN.md`. One per task, skipped.
-2. You verify them:
-   - Algorithmic: reference implementation in a temporary folder outside
+1. One per task, skipped, from the cases in `PLAN.md`. With a UI, a
+   Playwright test with assertions on the states the SPEC gives each
+   screen (empty, error, result, disabled), not a screenshot: the
+   screenshot is for the design QA.
+2. Who writes them is never the implementer:
+   - Fast mode: you. This session prepares and never implements.
+   - Full mode: the QA role, with `lanzar-worker.sh`, the tests folder as
+     allowed and its tool's **write** mode (`references/equipo.md`).
+3. Verify them:
+   - Fast mode: remove the skip locally, run them and see each one fail
+     against the stubs for the right reason (the stub's "not
+     implemented" or a wrong value; never an import error, a typo or a
+     missing fixture). Put the skip back. A task that is algorithmically
+     delicate gets a reference implementation only if it fits the budget;
+     if not, mark it high risk.
+   - Full mode: reference implementation in a temporary folder outside
      the repo; remove the skip locally, check that they pass and leave it
      as it was.
-   - UI: check that they fail against the stubs for the right reason.
-3. If a test is wrong, the same role that wrote it fixes it.
+4. If a test is wrong, whoever wrote it fixes it.
 
 ## 4. Conventions
 
 Short `AGENTS.md`: language, structure, contracts that do not change,
 pinned versions, commit format and "Acceptance tests are never touched:
-the queue removes the skip and they are read-only while you work". If Claude is on the team:
-`ln -s AGENTS.md CLAUDE.md`.
+the queue removes the skip and they are read-only while you work". If
+Claude is on the team: `ln -s AGENTS.md CLAUDE.md`.
 
 ## 5. Orchestrator and team
 
 - `ORQUESTADOR.md` from `assets/ORQUESTADOR.md` (the gate is always
-  `.desatendido/gate.sh`), with the real commands for each role (`references/lanzadores.md`). Replace `{WORKERS}` with
-  the block of the launcher the user chose: `assets/workers-cli.md` or
+  `.desatendido/gate.sh`), with the real commands for each role
+  (`references/lanzadores.md`). Replace `{WORKERS}` with the block of the
+  launcher the user chose: `assets/workers-cli.md` or
   `assets/workers-orca.md`, never the other, and fill in its values.
 - **The chosen launcher is kept.** If it cannot be used (for example
   `orca status --json` fails, or `orca skills get orchestration` is
-  unknown), stop, tell the user why and let them choose: fix it or switch.
-  Never switch on your own; note the decision in the Log of STATUS.md.
+  unknown), stop and say why: the user chooses whether to fix it or
+  switch. Never switch on your own.
 - Fill `{LANGUAGE}` with the user's language and `{AUTONOMY}` with the
   autonomy they chose (`references/equipo.md`).
 - With Orca: run `orca skills get orchestration` once now, so the commands
@@ -138,20 +178,39 @@ the queue removes the skip and they are read-only while you work". If Claude is 
   goes in `opencode.json`).
 - Models pinned in each command, or in the project configuration if the
   launcher does not let you pass them.
-- If there is no native goal: `bucle.sh` configured and tested with
-  `MAX_ROUNDS=1`.
-- **Smoke test** of every role **with the chosen launcher** (with Orca:
-  `worker-start`, read the answer with `worker-read`, then
-  `worker-release`). Show it in a table: role, launcher, expected model,
-  answer. Add two rows for the gate: "acceptance folder excluded in the
-  runner configuration", expected "the gate fails"; and "gate run twice
-  on a clean tree", expected "`git status` still empty". Each with what
-  it did.
+- If there is no native goal: `bucle.sh` configured (its `MAX_ROUNDS=1`
+  test is a worker call: only if the budget has it, otherwise the first
+  round is the test).
+- **Smoke test** of every role **with the chosen launcher**, only where
+  the table in section 0 says (with Orca: `worker-start`, read the answer
+  with `worker-read`, then `worker-release`). Record it in the Checks of
+  `equipo.md` with the date. When it is not run, the section "First
+  worker of each role" of `ORQUESTADOR.md` stays: the orchestrator checks
+  the model of the first worker of each role in the queue. When it ran or
+  is recorded, remove that section.
 
-## 6. Approval and commit
+## 6. Commit and launch
 
-Summarize in a few lines: files created, gate (with the guard), verified
-tests and smoke test. `.desatendido/` (scripts, `gate.sh`, `allowed/` and
-`qa/`) goes in the commit. With the user's OK: commit "fase cero", tag
-`fase-cero` and push (private repo unless they say otherwise). No `.env`,
-keys or logs in the commit.
+No approval here: the user gave it in the confirmation. `.desatendido/`
+(scripts, `gate.sh`, `allowed/` and `qa/`) and `docs/LOG.md` go in the
+commit. Commit "fase cero", tag `fase-cero` and push only if the user
+said so in the confirmation (private repo unless they said otherwise).
+No `.env`, keys or logs in the commit.
+
+Then `references/lanzadores.md`. Right before the real launch, with the
+counts:
+
+```zsh
+.desatendido/queue.sh note "preparation: queue launched at $(date +%H:%M), <minutes> minutes since the first question, <n> worker calls"
+```
+
+## 7. Final summary
+
+The user reads it when they are back, so it stands alone: files created,
+the gate checks ("acceptance folder excluded": the gate fails;
+"gate run twice on a clean tree": `git status` still empty), tests
+verified and how, smoke test and
+dry run (run now, recorded on `<date>` or left to the queue), time used
+against the budget, worker calls, decisions taken in phase zero, and how
+to watch and stop the queue (`references/lanzadores.md`, "Tell the
+user").

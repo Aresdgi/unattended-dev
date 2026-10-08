@@ -1,6 +1,6 @@
 # Orchestrator rules
 
-<!-- unattended-dev v8.8. Fill in the values in braces and remove what does not apply. {WORKERS} is replaced by assets/workers-cli.md or assets/workers-orca.md, whichever launcher the user chose, never the other. -->
+<!-- unattended-dev v8.9. Fill in the values in braces and remove what does not apply. {WORKERS} is replaced by assets/workers-cli.md or assets/workers-orca.md, whichever launcher the user chose, never the other. -->
 
 You coordinate, you do not implement: you never write or fix code
 yourself. The user chose the team; do not change it.
@@ -19,22 +19,38 @@ Worker launcher: **{LAUNCHER}**, chosen by the user. Use only that one.
 
 {WORKERS}
 
+### First worker of each role
+
+<!-- Phase zero removes this section when the smoke test ran or is recorded on this machine. -->
+
+There was no smoke test before the queue. The first time you launch each
+role, check in its output or its log header that it is the expected model
+(the Team table). If it is another one, stop and report it, with
+`.desatendido/queue.sh note "<role>: expected <x>, got <y>"` first: the
+user confirmed that team, not another one. The same if the worker could
+not even start (command not found, not logged in, unknown model): it is
+not the task's fault. The task goes back to PENDING on the next launch.
+
 ## Minimum context
 
 - You only read STATUS.md, docs/SPEC.md and the current task in {PLAN}.
-- You do not read code, diffs, tests or full logs: the worker's short
-  report and the launcher's summary are enough. Only exception: after the second
-  failed fix of a task, you may read the failing test and the function it
-  tests (nothing else) to decide between BLOCKED and a clearer order.
-- Never edit the STATUS.md table by hand: use `.desatendido/queue.sh`.
+- While a task goes well you do not read code, diffs, tests or full logs:
+  the worker's short report and the launcher's summary are enough.
+- From the first failure of a task (red gate, QA FAIL, `done` refusing or
+  a failed worker) you may read, to write a concrete fix order: the
+  task's diff since it started (`git diff <sha>`, with the sha of its
+  line "Txx started at <sha>" in `docs/LOG.md`, plus `git status --short`
+  for the new files, which `git diff` does not show) and the failing
+  test. You still never write or fix code: that is always a worker.
+- Never edit STATUS.md or `docs/LOG.md` by hand: use `.desatendido/queue.sh`.
 
 ## On start
 
 Print the time (`date`), so the time limit can be checked. Then run
 `.desatendido/queue.sh recover`: any task left IN PROGRESS was cut off,
 so its work goes to a backup branch and it goes back to PENDING. `queue.sh`
-writes every Log line itself; you never edit STATUS.md. For anything
-else worth keeping in the Log, `.desatendido/queue.sh note "<text>"`.
+writes every line of the Log (`docs/LOG.md`) itself. For anything else
+worth keeping in it, `.desatendido/queue.sh note "<text>"`.
 
 ## For each task
 
@@ -50,55 +66,65 @@ task). Exit 1 means the queue is finished; exit 2, nothing can start.
    only: OK or BLOCKED, files touched and 3 lines." If the worker exits
    with 3 (OUT OF TASK), first `.desatendido/queue.sh restore-outside
    Txx` (it puts back what it touched outside its files, with a copy in
-   a backup branch), then step 5.
-3. Read-only QA with the QA role, one per type. Answer: PASS or FAIL and
-   at most 5 lines. FAIL by default if there is no evidence. Record every
-   verdict, PASS or FAIL, with
-   `.desatendido/queue.sh qa Txx <type> PASS|FAIL "<its lines>"`, where
-   the type is `fidelity`, `technical` or `design`. A PASS only counts
-   for the code it reviewed: after any change, the QA is repeated.
+   a backup branch), then step 6.
+3. The gate, before any QA, so no review is spent on code that is going
+   to change:
+
+   ```zsh
+   .desatendido/gate.sh > logs/Txx-gate.log 2>&1; echo "gate exit $?"; tail -n 20 logs/Txx-gate.log
+   ```
+
+   If it is red: step 6 with those lines, no QA. (A gate that changes
+   files is caught by `done`, exit 7.)
+4. Read-only QA with the QA role, as the task's **Risk** in {PLAN} says:
+   low, one `combined` review; high, `fidelity` and `technical` apart
+   (one combined review does not count); and `design` too if it touches
+   the UI. Answer: PASS or FAIL and at most 5 lines. FAIL by default if
+   there is no evidence. Record every verdict, PASS or FAIL, with
+   `.desatendido/queue.sh qa Txx <type> PASS|FAIL "<its lines>"`. A PASS
+   only counts for the code it reviewed: after any change, the QA is
+   repeated.
 
    | QA | When | What it checks |
    | --- | --- | --- |
-   | Fidelity | Always | Does what the task, the SPEC and `docs/DECISIONES.md` say, nothing invented or left out{SOURCES}. A behavior recorded in `DECISIONES.md` is not an invention |
-   | Technical | Always | Bugs, edge cases, security, dead code |
+   | Fidelity | Always (in `combined` when the risk is low) | Does what the task, the SPEC and `docs/DECISIONES.md` say, nothing invented or left out{SOURCES}. A behavior recorded in `DECISIONES.md` is not an invention |
+   | Technical | Always (in `combined` when the risk is low) | Bugs, edge cases, security, dead code |
    | Design | If it touches the UI | Mobile and desktop screenshots with `{SCREENSHOTS}`, empty and error states, accessibility |
 
-4. If every QA passed: `.desatendido/queue.sh done Txx "<summary>"`. It
+5. If every QA passed: `.desatendido/queue.sh done Txx "<summary>"`. It
    checks the task itself and only then marks DONE and commits the work
-   and the state together. You do not run the gate before it: `done`
-   runs `.desatendido/gate.sh` (the guard watching the tests of this task
-   and the DONE ones, then the rest of the gate). If it refuses, the task
-   stays IN PROGRESS:
+   and the state together: it runs `.desatendido/gate.sh` again itself
+   (the guard watching the tests of this task and the DONE ones, then the
+   rest of the gate). If it refuses, the task stays IN PROGRESS:
    - Exit 6, files outside the task: `.desatendido/queue.sh
-     restore-outside Txx`, then step 5.
-   - Exit 7, the gate failed: it prints the last 20 lines; step 5 with
+     restore-outside Txx`, then step 6.
+   - Exit 7, the gate failed: it prints the last 20 lines; step 6 with
      them. If it says instead that **the gate changed files**, that is
      not the task's fault: stop and report it (the gate has to be fixed,
      as phase zero says).
    - Exit 8, QA missing, FAIL or for other code: run and record the QA
-     types it names. If one fails, step 5.
-5. If a QA fails, `done` refuses with 6 or 7, or the worker **failed**
+     types it names. If one fails, step 6.
+6. If the gate is red, a QA fails, `done` refuses with 6 or 7, or the worker **failed**
    (as "Workers" defines it: out of task, timeout, killed or a failed
    report):
    - First ask yourself whether it is a **gap in the SPEC** (two reviews
      that contradict each other, or a case the SPEC does not define). If
      it is, apply "Gaps in the SPEC" below before fixing.
-   - Then `.desatendido/queue.sh fix Txx "<reason>"`, and pass those lines
-     to the same role to fix; then steps 3 and 4 again. To see the gate
-     error yourself, you may run `.desatendido/gate.sh` (print the exit
-     code and the last 20 lines). `queue.sh` counts the fixes: if it
-     exits 5 there are none left.
+   - Then `.desatendido/queue.sh fix Txx "<reason>"`, and pass the
+     concrete order to the same role (what fails and where, from the
+     lines and, if you read them, the diff and the test); then steps 3
+     to 5 again. `queue.sh` counts the fixes: if it exits 5 there are
+     none left.
    - If no fixes are left, or a fix cannot work: `.desatendido/queue.sh
      block Txx "<reason>"` (it keeps the task's work in a backup branch,
      puts its files back as they were at the start and commits BLOCKED in
      one step).
 
-Never commit, stash or edit STATUS.md or `.desatendido/` yourself:
-`queue.sh` does it so the state and the work can never drift apart. If a
-`queue.sh` command fails with exit 4, stop and report it: something in git
-needs a human. If any of them exits 6 because STATUS.md or
-`docs/DECISIONES.md` has changes it did not make, run
+Never commit, stash or edit STATUS.md, `docs/LOG.md` or `.desatendido/`
+yourself: `queue.sh` does it so the state and the work can never drift
+apart. If a `queue.sh` command fails with exit 4, stop and report it:
+something in git needs a human. If any of them exits 6 because STATUS.md,
+`docs/LOG.md` or `docs/DECISIONES.md` has changes it did not make, run
 `.desatendido/queue.sh restore-outside Txx` and go on. If it exits 3 (for example `start` because the tree has
 changes that are not from the queue, or `done` because there is no gate),
 do not work around it: stop and report its message.

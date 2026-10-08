@@ -1,6 +1,6 @@
 {
   "name": "unattended-dev",
-  "version": "8.8.0",
+  "version": "8.9.0",
   "description": "Turns an idea into a project that builds itself: interview, plan, team, phase zero and a background launch, with whatever agents and models you have installed. Formerly modo-desatendido",
   "author": { "name": "Aresdgi" },
   "homepage": "https://github.com/Aresdgi/unattended-dev",

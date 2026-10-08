@@ -10,6 +10,77 @@ son públicas y cada una tiene su
 Las anteriores vivían en un repo privado y con otros nombres:
 `modo-nocturno` (1 y 2) y `modo-desatendido` (de la 3 a la 8.1.0).
 
+## [8.9.0] - 2026-10-08
+
+Una preparación que corre sola. Respondes las preguntas y confirmas una
+vez; la fase cero y el lanzamiento siguen sin parar, así que te puedes ir
+justo después de ese "sí", y la preparación tiene un presupuesto de
+tiempo a la medida del hito.
+
+### Añadido
+- Un presupuesto para la preparación, de la primera pregunta a la cola
+  en marcha: 5 minutos y ninguna llamada a workers para 1 a 3 tareas, 15
+  minutos y como mucho una para 4 a 8, 30 minutos para más o en modo
+  completo. Lo que no cabe se hace una vez por máquina o pasa a la cola.
+  El Log apunta cuándo empezó la preparación y cuándo se lanzó la cola.
+- Con 3 tareas o menos, la skill primero te dice que una sesión normal
+  (con `/goal` si tu herramienta lo tiene) lo hace antes.
+- Un riesgo por tarea en `PLAN.md`. Riesgo bajo, una revisión de QA
+  combinada; riesgo alto, fidelidad y técnica por separado, y
+  `queue.sh done` ya no le acepta una sola revisión combinada.
+- La prueba de humo y la prueba en seco del lanzamiento se apuntan en
+  `~/.config/modo-desatendido/equipo.md` con su fecha y se hacen una vez
+  por máquina. Sin una reciente, el orquestador comprueba el modelo del
+  primer worker de cada papel y se comprueba que el lanzamiento arrancó.
+- El README dice dónde compensa la skill y dónde no.
+
+### Cambiado
+- Una sola confirmación al final de la entrevista es la última pregunta.
+  Los casos extremos que buscaba una revisión adversarial aparte, el
+  equipo, las horas y cómo lanzarlo se preguntan en la entrevista. Tras
+  la confirmación, una duda sigue la autonomía que elegiste (la proactiva
+  apunta una regla prudente en `docs/DECISIONES.md`) y solo para la fase
+  cero lo que de verdad te necesita: una herramienta que falta, una
+  carpeta sin confianza, una prueba de humo o en seco que falla.
+- En modo rápido los tests de aceptación los escribe quien prepara y se
+  comprueba que fallan contra los stubs por el motivo correcto; que los
+  escriba QA y la implementación de referencia quedan para el modo
+  completo. El modo rápido llega ahora hasta 8 tareas.
+- El Log pasa de `STATUS.md` a `docs/LOG.md`, con la misma protección: un
+  worker que lo edita está fuera de tarea. Un Log antiguo en `STATUS.md`
+  se mueve allí solo.
+- El orquestador pasa el gate antes que la QA, para no gastar revisiones
+  en un código que va a cambiar, y desde el primer fallo puede leer el
+  diff de la tarea y el test que falla para dar una orden de arreglo
+  concreta.
+- Los casos de cada tarea dependen de lo que tiene (un caso inválido por
+  error, los límites de cada entrada, un caso válido por regla, o cada
+  estado de una pantalla) en vez de 6 y 6 fijos.
+- Con interfaz, cada test de aceptación es un test de Playwright con
+  aserciones sobre los estados de la SPEC, y Playwright levanta el
+  servidor él mismo.
+- Cada papel lleva los flags de lo que hace: modo de escritura para quien
+  escribe, solo lectura para la QA que revisa.
+- Un test de aceptación solo comprueba su tarea, nunca una salida que una
+  tarea posterior va a cambiar.
+- `block`, `recover` y `restore-outside` no ejecutan ningún hook de git
+  del proyecto (los demás commits de `queue.sh` tampoco, ni siquiera el
+  `prepare-commit-msg` ni el `reference-transaction` que `--no-verify`
+  deja pasar), así que un hook que
+  falla ya no puede atascar la cola mientras devuelve una tarea a su
+  estado. `done` los sigue ejecutando.
+
+### Arreglado
+- `queue.sh` lee el Log tal como lo dejó en su último commit, así que un
+  worker que sobrescribe `docs/LOG.md` (un nombre muy común) no puede
+  ocultar dónde empezó su tarea: `block` y `restore-outside` siguen
+  devolviendo el código.
+- Una línea del Log que no se puede escribir hace fallar el paso en vez de
+  darla por apuntada.
+- `LANZAR.md`, que se escribe después del lanzamiento, podía hacer que el
+  primer `queue.sh start` se negara por tener el árbol sucio. Ahora está
+  en `.gitignore`.
+
 ## [8.8.0] - 2026-10-08
 
 Candados. Las reglas que impiden que llegue a DONE trabajo roto o
@@ -394,6 +465,7 @@ Primera versión, como **modo-nocturno**.
 - Comprobaciones al arrancar: jq, Orca, estar dentro de una terminal de
   Orca, permisos de opencode, fusibles y cola vacía.
 
+[8.9.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.9.0
 [8.8.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.8.0
 [8.7.2]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.2
 [8.7.1]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.1

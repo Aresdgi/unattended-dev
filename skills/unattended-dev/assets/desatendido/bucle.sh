@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.8: external loop for orchestrators with no native goal.
+# unattended-dev v8.9: external loop for orchestrators with no native goal.
 # Relaunches the orchestrator, one task per round, with a clean context.
 # Which task comes next is decided by queue.sh, not by the model.
 #

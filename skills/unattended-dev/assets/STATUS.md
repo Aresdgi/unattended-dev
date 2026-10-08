@@ -1,6 +1,6 @@
 # STATUS
 
-<!-- unattended-dev v8.8. Keep the table format: queue.sh reads and writes it. Test is the path of the task's acceptance test (or none). -->
+<!-- unattended-dev v8.9. Keep the table format: queue.sh reads and writes it. Test is the path of the task's acceptance test (or none). The Log is in docs/LOG.md, written by queue.sh. -->
 
 States: PENDING, IN PROGRESS, DONE, BLOCKED.
 
@@ -15,7 +15,3 @@ States: PENDING, IN PROGRESS, DONE, BLOCKED.
 Pending decisions and risky tasks that will be done supervised.
 
 - {task or decision}: {reason}
-
-## Log
-
-Written by `queue.sh`: starts, fixes, decisions, DONE, BLOCKED and interruptions, one line each.

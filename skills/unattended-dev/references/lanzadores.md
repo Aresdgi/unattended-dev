@@ -9,7 +9,8 @@
 ```
 
 - Each role's command is its non-interactive form with the model made
-  explicit, checked with `--help` (see `references/equipo.md`).
+  explicit and the flags of what it does (write or read-only), checked
+  with `--help` (see `references/equipo.md`).
 - If the command has flags that can swallow the order text (for example,
   file lists), put `--` before the order.
 - QA is launched without `--allowed`: any change shows up as OUT OF TASK.
@@ -40,32 +41,53 @@ with Orca as the worker launcher, the orchestrator starts in an Orca tab
 
 ## Smoke test
 
-With the chosen worker launcher, each role receives:
+Once per machine: it is skipped when the Checks of `equipo.md` record one
+for the same team in the last 7 days (`references/fase-cero.md` says
+when else). With the chosen worker launcher, each role receives:
 
 ```text
 Reply with a single line only: "OK <exact name of the model you are>". Do not touch any file.
 ```
 
 If the answer is generic ("OK GPT"), confirm the model in the CLI header
-or log. All green before launching.
+or log. All green before launching; then record it in the Checks.
 
-## Launch (phase 4)
+## Launch
 
-Ask "shall I launch it?" with these options:
+It is decided in the interview, together with the team (the launch and
+the hours are part of "the usual"):
 
-1. **Yes, in the background** (recommended): nothing for the user to
-   open.
-2. **Yes, in a visible Orca tab**: only if `orca status` says the app is
+1. **In the background** (recommended): nothing for the user to open.
+2. **In a visible Orca tab**: only if `orca status` says the app is
    running. Mandatory when the worker launcher is Orca.
-3. **No**: give `assets/LANZAR.md` filled in and stop.
+3. **The user launches it**: at the end of phase zero, give
+   `assets/LANZAR.md` filled in instead of launching.
 
-In the same question, the time limit (`<HOURS>`): propose about 30
-minutes per task, at least 2 hours. If the user says "no limit", drop
-clause (c) from the goal and use 24 hours for `caffeinate` and the time
-fuse, only as a safety net; tell them so in one line.
+And the time limit (`<HOURS>`): propose about 30 minutes per task, at
+least 2 hours. If the user says "no limit", drop clause (c) from the goal
+and use 24 hours for `caffeinate` and the time fuse, only as a safety
+net; tell them so in one line.
 
 The orchestrator always starts in a NEW session, in the project folder,
 with a clean context. You never orchestrate from the preparation session.
+
+### Before the confirmation
+
+What would stop phase zero later is checked or asked now, while the user
+is still there:
+
+- The tools of the team and of the mechanism are installed (`equipo.md`,
+  inventory). If tmux is missing, its install goes in the confirmation.
+- The orchestrator's folder is trusted. `claude --bg` refuses a folder
+  that is not ("Workspace not trusted"): for a new folder, create it and
+  ask the user to run `claude` once in it and accept the prompt, now.
+  Codex asks "Trust this folder?" when it starts: the OK to accept it
+  goes in the confirmation.
+- The permission mode of the orchestrator, chosen (below).
+- Your own tool: if it asks for permission before each command, phase
+  zero stops at the first one. Tell the user to allow them for this
+  session (in Claude Code, for example, auto mode) or that they will
+  have to stay.
 
 ### 1. Choose the mechanism
 
@@ -80,30 +102,32 @@ Check before using it:
 
 - **Claude Code**: `claude --help` lists `--bg`, `--model`,
   `--permission-mode` and `-n`. `claude --bg` refuses to start in a
-  folder that is not trusted ("Workspace not trusted"): ask the user to
-  run `claude` once in the project folder and accept the prompt. Without
+  folder that is not trusted ("Workspace not trusted"); that was settled
+  before the confirmation. If it still happens, stop and say it. Without
   `-w` it works in the current folder (no worktree).
 - **Permission mode**: the orchestrator runs shell commands with nobody
   watching, so a mode that asks for permission leaves it stuck. Offer the
   modes from `claude --help` (`auto` or `bypassPermissions`; for Codex,
   `-a never` with a sandbox that lets the workers reach the network) and
-  let the user choose. Never `manual`, `acceptEdits` or `plan`.
-- **tmux**: `command -v tmux`. If it is missing, ask for permission
-  before installing it (`brew install tmux`). If they say no, offer
+  let the user choose in the interview. Never `manual`, `acceptEdits` or
+  `plan`.
+- **tmux**: `command -v tmux`. If it is missing, install it
+  (`brew install tmux`) only with the OK of the confirmation; without it,
   `bucle.sh` or an Orca tab.
 - **Codex**: `codex -m <model> -a never -s danger-full-access` (its header
   then says "permissions: YOLO mode"). With `workspace-write` there is no
   network, so workers that call an API fail. In a folder Codex has not
-  seen yet it stops at "Trust this folder?": tell the user and, with their
-  OK, `tmux send-keys -t "ud-<project>" Enter` (the choice is saved in
+  seen yet it stops at "Trust this folder?": with the OK of the
+  confirmation, `tmux send-keys -t "ud-<project>" Enter` (the choice is saved in
   `~/.codex/config.toml`). It is ready when the screen shows "Ask Codex to
   do anything"; after the goal it shows "Goal active" and, at the end,
   "Goal achieved".
 - **Your own permissions**: if you run under a safety classifier (for
   example Claude Code in `auto` mode), starting an orchestrator with no
-  sandbox or approvals may be blocked. Do not work around it: give the
-  user the exact command to run themselves (in Claude Code, with the `!`
-  prefix) and carry on from there.
+  sandbox or approvals may be blocked. Do not work around it: stop, and
+  leave the exact command for the user to run when they are back (in
+  `LANZAR.md` and in your last message; in Claude Code, with the `!`
+  prefix).
 - **Orca as worker launcher**: if `orca terminal create` cannot open the
   tab (app closed, error), warn and propose the CLI worker launcher
   (`lanzar-worker.sh`), which does not depend on Orca. Update
@@ -142,9 +166,15 @@ on battery with the lid closed it will sleep anyway.
 
 ### 3. Dry run
 
-Before the real launch, the same mechanism with exactly the same flags
-and a trivial goal that tests the whole chain: the launched orchestrator
-starts one test worker with the chosen worker launcher and releases it.
+Once per mechanism and machine: it is skipped when the Checks of
+`equipo.md` record one for the same mechanism with the same flags, or
+when the budget has no worker call left (`references/fase-cero.md`).
+Then check after the real launch that it started (section 4).
+
+Otherwise, before the real launch, the same mechanism with exactly the
+same flags and a trivial goal that tests the whole chain: the launched
+orchestrator starts one test worker with the chosen worker launcher and
+releases it.
 
 Trivial goal (replace the command with the real QA command from
 `ORQUESTADOR.md`):
@@ -167,10 +197,16 @@ session with `"state": "done"`, or `tmux capture-pane -p` / `orca terminal
 read` / the log shows the `DRY RUN` line with exit 0 (Codex also shows
 "Goal achieved"). Then clean up
 (`claude stop <id>` and `claude rm <id>`, `tmux kill-session`, `orca
-terminal close`) and delete `logs/*dry-run*`. If it fails, fix it before
-the real launch; do not launch with a dry run that did not pass.
+terminal close`) and delete `logs/*dry-run*`. Record it in the Checks.
+If it fails, fix it before the real launch; do not launch with a dry run
+that did not pass, and if you cannot fix it, stop and say it.
 
 ### 4. Real launch
+
+Right before it, the Log line with the launch time
+(`references/fase-cero.md`, section 6). After it, do not leave changes in
+the project folder: `queue.sh start` refuses to start a task while the
+tree has changes that are not its own (`LANZAR.md` is in `.gitignore`).
 
 The goal, with the values filled in:
 
@@ -213,6 +249,12 @@ Watch: `tail -f logs/bucle-*.log`. Stop at the end of the current round:
 `touch AGENT_STOP`; right now: `kill $(cat logs/bucle.pid)` (the
 orchestrator call in progress may still finish its turn).
 
+**Check that it started**, always, and above all when there was no dry
+run: the session is alive (`claude agents`, `tmux capture-pane` with
+"Goal active", the tab in Orca or `logs/bucle-*.log`) and, within 10
+minutes, `docs/LOG.md` has a `started` line. If not, stop it, run the dry
+run and launch again; if that fails too, stop and say it.
+
 **Orca tab:**
 
 ```zsh
@@ -226,11 +268,13 @@ and nothing to send. Watch: the tab in Orca, or `orca terminal read
 
 ### 5. Tell the user
 
-In a few lines: mechanism, session id or name, how to watch it, how to
-stop it (including `kill $(cat logs/caffeinate.pid)` if there is one),
-when the time fuse fires (cancel: `kill $(cat logs/fuse.pid)`) and
-"when you are back, come to this session and say: review the session".
-Write the same into the "Launched for you" block of `LANZAR.md`.
+The user may not be there: this goes in your last message, with the
+summary of phase zero (`references/fase-cero.md`). In a few lines:
+mechanism, session id or name, how to watch it, how to stop it
+(including `kill $(cat logs/caffeinate.pid)` if there is one), when the
+time fuse fires (cancel: `kill $(cat logs/fuse.pid)`) and "when you are
+back, come to this session and say: review the session". Write the same
+into the "Launched for you" block of `LANZAR.md`.
 
 ## Keeping the orchestrator alive
 

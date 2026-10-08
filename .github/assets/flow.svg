@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" width="920" height="560" role="img" aria-label="How it works: interview, plan and team, phase zero with you; the queue without you; then the review">
-<title>How it works: interview, plan and team, phase zero with you; the queue without you; then the review</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" width="920" height="560" role="img" aria-label="How it works: the interview and one confirmation with you; phase zero and the queue without you; then the review">
+<title>How it works: the interview and one confirmation with you; phase zero and the queue without you; then the review</title>
 <style>text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }</style>
 <defs>
   <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -18,26 +18,27 @@
 <rect x="30" y="30" width="860" height="210" rx="22" fill="#a78bfa" fill-opacity=".05" stroke="#a78bfa" stroke-opacity=".55" stroke-width="2" stroke-dasharray="8 7"/>
 <text x="54" y="66" text-anchor="start" font-size="21" font-weight="700" fill="#a78bfa">WITH YOU</text>
 <rect x="60" y="100" width="250" height="104" rx="18" fill="#a78bfa" fill-opacity=".13" stroke="#a78bfa" stroke-width="2.5"/>
-<text x="185.0" y="146.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Interview</text>
-<text x="185.0" y="176.0" text-anchor="middle" font-size="19" fill="#a5adc0">only what it needs</text>
+<text x="185.0" y="146" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Interview</text>
+<text x="185.0" y="176" text-anchor="middle" font-size="19" fill="#a5adc0">only what it needs</text>
 <rect x="335" y="100" width="250" height="104" rx="18" fill="#a78bfa" fill-opacity=".13" stroke="#a78bfa" stroke-width="2.5"/>
-<text x="460.0" y="146.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Plan and team</text>
-<text x="460.0" y="176.0" text-anchor="middle" font-size="19" fill="#a5adc0">tasks and who does what</text>
+<text x="460.0" y="146" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Confirmation</text>
+<text x="460.0" y="176" text-anchor="middle" font-size="19" fill="#a5adc0">one yes, the last question</text>
 <rect x="610" y="100" width="250" height="104" rx="18" fill="#a78bfa" fill-opacity=".13" stroke="#a78bfa" stroke-width="2.5"/>
-<text x="735.0" y="146.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Phase zero</text>
-<text x="735.0" y="176.0" text-anchor="middle" font-size="19" fill="#a5adc0">base, tests, smoke</text>
+<text x="735.0" y="146" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Review</text>
+<text x="735.0" y="176" text-anchor="middle" font-size="19" fill="#a5adc0">queue, tests, gate, by hand</text>
 <path d="M312,152.0 L331,152.0" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#m-violet)"/>
-<path d="M587,152.0 L606,152.0" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#m-violet)"/>
-<rect x="30" y="320" width="400" height="210" rx="22" fill="#7dd3fc" fill-opacity=".05" stroke="#7dd3fc" stroke-opacity=".55" stroke-width="2" stroke-dasharray="8 7"/>
+<rect x="30" y="320" width="860" height="210" rx="22" fill="#7dd3fc" fill-opacity=".05" stroke="#7dd3fc" stroke-opacity=".55" stroke-width="2" stroke-dasharray="8 7"/>
 <text x="54" y="356" text-anchor="start" font-size="21" font-weight="700" fill="#7dd3fc">WITHOUT YOU</text>
-<rect x="60" y="390" width="340" height="104" rx="18" fill="#7dd3fc" fill-opacity=".13" stroke="#7dd3fc" stroke-width="2.5"/>
-<text x="230.0" y="436.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Unattended queue</text>
-<text x="230.0" y="466.0" text-anchor="middle" font-size="19" fill="#a5adc0">one task after another</text>
-<path d="M735.0,206 L735.0,285 L230,285 L230,386" fill="none" stroke="#4ade80" stroke-width="2.5" marker-end="url(#m-green)"/>
-<text x="482.5" y="275" text-anchor="middle" font-size="19" font-weight="600" fill="#4ade80">shall I launch it? yes</text>
-<rect x="610" y="390" width="270" height="104" rx="18" fill="#a78bfa" fill-opacity=".13" stroke="#a78bfa" stroke-width="2.5"/>
-<text x="745.0" y="436.0" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Review</text>
-<text x="745.0" y="466.0" text-anchor="middle" font-size="19" fill="#a5adc0">queue, tests, gate, by hand</text>
-<path d="M402,442.0 L606,442.0" fill="none" stroke="#a5adc0" stroke-width="2.5" marker-end="url(#m-muted)"/>
-<text x="446" y="428.0" text-anchor="start" font-size="17" font-weight="600" fill="#a5adc0">“review the session”</text>
+<text x="185.0" y="452.0" text-anchor="middle" font-size="19" font-style="italic" fill="#a5adc0">you can go now</text>
+<rect x="335" y="390" width="250" height="104" rx="18" fill="#7dd3fc" fill-opacity=".13" stroke="#7dd3fc" stroke-width="2.5"/>
+<text x="460.0" y="436" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Phase zero</text>
+<text x="460.0" y="466" text-anchor="middle" font-size="19" fill="#a5adc0">base, tests, gate</text>
+<rect x="610" y="390" width="250" height="104" rx="18" fill="#7dd3fc" fill-opacity=".13" stroke="#7dd3fc" stroke-width="2.5"/>
+<text x="735.0" y="436" text-anchor="middle" font-size="25" font-weight="700" fill="#e5e7eb">Unattended queue</text>
+<text x="735.0" y="466" text-anchor="middle" font-size="19" fill="#a5adc0">one task after another</text>
+<path d="M587,442.0 L606,442.0" fill="none" stroke="#7dd3fc" stroke-width="2.5" marker-end="url(#m-blue)"/>
+<path d="M460.0,206 L460.0,386" fill="none" stroke="#4ade80" stroke-width="2.5" marker-end="url(#m-green)"/>
+<text x="472" y="272" text-anchor="start" font-size="19" font-weight="600" fill="#4ade80">yes, leave it running</text>
+<path d="M735.0,388 L735.0,208" fill="none" stroke="#a5adc0" stroke-width="2.5" marker-end="url(#m-muted)"/>
+<text x="723" y="306" text-anchor="end" font-size="17" font-weight="600" fill="#a5adc0">“review the session”</text>
 </svg>

@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-8.8.0-7c3aed?style=for-the-badge" alt="version 8.8.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-8.9.0-7c3aed?style=for-the-badge" alt="version 8.9.0"></a>
   <img src="https://img.shields.io/badge/status-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="script tests"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="MIT license"></a>
@@ -33,6 +33,12 @@
 > **Experimental.** The scripts are tested on Linux and macOS (see
 > [Testing](#-testing)), but full unattended runs have only been tried on a
 > few small projects. Review what it builds before you trust it.
+>
+> **Where it pays off:** long queues of CLIs, libraries and well-bounded
+> features that work for hours or overnight. **Where it doesn't:**
+> milestones of a few tasks (a normal session with `/goal` is faster, and
+> the skill tells you so), UIs whose design is still to be found, and
+> products with open decisions.
 
 > [!NOTE]
 > **Formerly `modo-desatendido`**, in the `aresdgi` marketplace. If you
@@ -103,8 +109,9 @@ choose who orchestrates, who implements and who reviews.
 
 ### 🌙 It launches itself
 
-Say "yes" and it leaves the orchestrator working in the background, with
-the Mac kept awake. You don't open a single terminal.
+You answer the questions and say "yes" once. It prepares everything and
+leaves the orchestrator working in the background, with the Mac kept
+awake. You can leave right after that "yes".
 
 </td>
 </tr>
@@ -131,17 +138,19 @@ are done with you watching.
 
 ### 🧭 It doesn't stop at every doubt
 
-Before launching, another model hunts for gaps in the SPEC and you settle
-them in one round. If one still shows up overnight, it picks the most
-prudent option, writes it in `docs/DECISIONES.md` and keeps going.
+The interview asks up front for the limits and edge cases, with a
+recommendation, and you settle them in one round. If a gap still shows up
+later, it picks the most prudent option, writes it in
+`docs/DECISIONES.md` and keeps going.
 
 </td>
 <td valign="top">
 
 ### 🗒️ Everything is written down
 
-Starts, fixes, decisions and blocks go into the Log of `STATUS.md` by
-themselves, and the orchestrator reports to you in your language.
+Starts, fixes, decisions and blocks go into `docs/LOG.md` by themselves,
+along with when the preparation started and when the queue was launched,
+and the orchestrator reports to you in your language.
 
 </td>
 </tr>
@@ -156,33 +165,42 @@ themselves, and the orchestrator reports to you in your language.
 ## 🧭 How it works
 
 <p align="center">
-  <img src=".github/assets/flow.svg" alt="How it works: interview, plan and team and phase zero with you; the unattended queue without you; then the review" width="720">
+  <img src=".github/assets/flow.svg" alt="How it works: the interview and one confirmation with you; phase zero and the queue without you; then the review" width="720">
 </p>
 
 | | Phase | What happens |
 | :-: | --- | --- |
-| 1 | **Interview** | At most 4 questions per round, with options and a recommendation. Ends with a summary and "shall I set it up like this?" |
-| 2 | **Plan and team** | Small tasks with closed file lists. Inventory of what's installed and a role for each tool |
-| 3 | **Phase zero** | Skeleton, gate, skipped acceptance tests, `AGENTS.md`, `ORQUESTADOR.md` and a smoke test of the whole team |
-| 4 | **Launch** | Asks "shall I launch it?". With a yes, it runs a dry run and leaves the orchestrator in the background, in a new session with a clean context |
-| 5 | **Review** | When you're back, say "review the session": it checks the queue, the guard, the gate and a manual test |
+| 1 | **Interview** | At most 4 questions per round, with options and a recommendation: the idea, limits and edge cases, the team (or "the usual"), the hours and how to launch |
+| 2 | **Confirmation** | One summary with the tasks, their files and risk, and "shall I set it up and leave it running?". The last question |
+| 3 | **Phase zero** | On its own: skeleton, gate, skipped acceptance tests, `AGENTS.md` and `ORQUESTADOR.md`. Smoke test and dry run only if this machine hasn't passed them yet |
+| 4 | **Launch** | On its own too: the orchestrator in the background, in a new session with a clean context |
+| 5 | **Review** | When you're back, say "review the session": first what was decided without you, then the queue, the guard, the gate and a manual test |
+
+The preparation, from the first question to the queue running, has a
+budget: **5 minutes and no worker calls** for 1 to 3 tasks, **15 minutes
+and at most one** for 4 to 8, **30 minutes** for more or in full mode.
+What doesn't fit is done once per machine or moved to the queue.
 
 ### Each task in the queue
 
-The orchestrator **coordinates, it doesn't implement**: it works from what
-the scripts hand back, not from the code. The only exception: after two
-failed fixes it may read the failing test and the function it tests, to
-decide between blocking the task and giving a clearer order.
+The orchestrator **coordinates, it doesn't implement**: while a task goes
+well it works from what the scripts hand back, not from the code. From the
+first failure it may read the task's diff and the failing test, to give
+the worker a concrete fix order; it never edits code itself.
 
 <p align="center">
   <img src=".github/assets/task.svg" alt="Each task: queue.sh next and start, the worker, the gate and QA, fixes at most twice, and queue.sh done or block" width="640">
 </p>
 
 - **Gate**: test guard, typecheck, tests and build, in
-  `.desatendido/gate.sh`. `queue.sh done` runs it itself before closing.
-- **QA**: read-only, one per type. *Fidelity* (does what the SPEC asks,
-  nothing invented), *technical* (bugs, edge cases, security) and *design*
-  (mobile and desktop screenshots, empty and error states, accessibility).
+  `.desatendido/gate.sh`. It runs before the QA, so no review is spent on
+  code that is going to change, and `queue.sh done` runs it again itself
+  before closing.
+- **QA**: read-only, by the task's risk. Low risk: one *combined* review.
+  High risk: *fidelity* (does what the SPEC asks, nothing invented) and
+  *technical* (bugs, edge cases, security) apart. Plus *design* (mobile
+  and desktop screenshots, empty and error states, accessibility) if it
+  touches the UI.
 
 If the session gets cut off (quota, laptop asleep…), launch it again the
 same way: the half-done work of the task left IN PROGRESS goes to a backup
@@ -190,10 +208,12 @@ branch and that task starts again from a clean state.
 
 ## 🌙 Automatic launch
 
-When phase zero is done it asks **"shall I launch it?"**. With a yes, it
-picks the mechanism for your orchestrator, runs a **dry run** with a trivial
-goal (the launched orchestrator starts a test worker and releases it, to test
-the whole chain) and only then launches for real.
+How to launch is asked in the interview, and once phase zero is done it
+launches without asking again. It picks the mechanism for your
+orchestrator and, the first time on your machine, runs a **dry run** with a
+trivial goal (the launched orchestrator starts a test worker and releases
+it, to test the whole chain). After that it is recorded, and it only checks
+that the launch started.
 
 | Orchestrator | How it launches | How to watch | How to stop |
 | --- | --- | --- | --- |
@@ -211,24 +231,28 @@ the whole chain) and only then launches for real.
 - A **time fuse** stops the session at the end of those hours even if the
   goal never ends. If you say "no limit", it stays as a safety net at 24
   hours.
-- If tmux isn't installed, it **asks for permission** before installing it.
+- If tmux isn't installed, it **asks for permission** in the interview,
+  before installing it.
 - The Orca CLI only works inside an Orca terminal. So if the workers go
   through Orca, the orchestrator starts in an Orca tab. If Orca can't be
   used, it **stops and asks you**; it never switches launcher on its own.
-- If you'd rather launch it yourself, say no and you get `LANZAR.md` filled
-  in.
+- If you'd rather launch it yourself, say so in the interview and you get
+  `LANZAR.md` filled in.
 
 ## ⚡ Two modes
 
 | | 🏎️ Fast · *default* | 🏗️ Full |
 | --- | --- | --- |
-| **When** | 6 tasks or fewer and nothing risky | Large project, real data, high risk or because you ask |
+| **When** | 8 tasks or fewer and nothing risky | More than 8 tasks, real data, high risk or because you ask |
 | **Interview** | 1 or 2 rounds | As many as needed |
-| **Approvals** | One, at the end of the preparation | At the end of each phase |
+| **You** | Answer and confirm once | The same |
+| **Acceptance tests** | Written by whoever prepares, checked against the stubs | Written by QA, checked against a reference implementation |
 | **Documents** | `docs/SPEC.md` and `PLAN.md` | SPEC, one file per task and one closing note per task |
-| **Phase zero** | About 15 minutes | Between 30 and 60 minutes |
+| **Preparation** | 5 minutes (1 to 3 tasks) or 15 (4 to 8) | Up to 30 minutes |
 
-When the interview ends it proposes one, in one line and with the reason.
+With 3 tasks or fewer it first tells you that a normal session does it
+sooner. During the interview it proposes a mode, in one line and with the
+reason.
 
 ## 🎛️ Your team, your rules
 
@@ -260,8 +284,11 @@ If you want, it saves it as "the usual" in
 - Worker launcher: cli
 ```
 
-Before launching, a **smoke test**: each role answers
-`OK <exact model name>` and nothing launches until they're all green.
+A **smoke test**, once per machine: each role answers
+`OK <exact model name>`. It's recorded in that same file with the date
+and repeated when the team changes or after 7 days. When there's no
+recent one, the orchestrator checks the model of the first worker of
+each role.
 
 The skill always talks to you in your language.
 
@@ -301,8 +328,8 @@ task, dependencies, BLOCKED propagation, removing the skip when a task
 starts, **closing** a task in one atomic step and **recovering** a task
 that was cut off. Each task is measured against the commit it started
 from: `done` refuses if it touched files outside its list, if the gate
-fails or if there is no QA PASS for the exact code being closed. Every
-state change is committed.
+fails or if there is no QA PASS, of the kind its risk asks for, for the
+exact code being closed. Every state change is committed.
 
 </td>
 <td width="25%" valign="top">
@@ -329,7 +356,7 @@ workers.
 # The queue: next task, start it (removes the skip of its test), finish it
 .desatendido/queue.sh next            # -> T01
 .desatendido/queue.sh start T01
-.desatendido/queue.sh qa T01 fidelity PASS "summary"  # QA verdict for the code as it is now
+.desatendido/queue.sh qa T01 combined PASS "summary"  # QA verdict for the code as it is now
 .desatendido/queue.sh done T01 "summary"    # checks, then DONE + commit, in one step
 .desatendido/queue.sh block T01 "reason"    # backup branch + files back + BLOCKED, in one step
 .desatendido/queue.sh fix T01 "reason"      # counts a fix; exit 5 when none are left
@@ -364,14 +391,16 @@ touch AGENT_STOP   # stops at the end of the current round
 | `3` | Wrong usage or state: for example `start` with a dependency not DONE or another task IN PROGRESS |
 | `4` | A git step failed; nothing was marked |
 | `5` | No fixes or decisions left: block the task |
-| `6` | Files outside the task since it started (`outside`, `done`). Also `fix`, `decide`, `note`, `qa` and `set` when `STATUS.md` has changes `queue.sh` did not make |
+| `6` | Files outside the task since it started (`outside`, `done`). Also `fix`, `decide`, `note`, `qa` and `set` when `STATUS.md`, `docs/LOG.md` or `docs/DECISIONES.md` has changes `queue.sh` did not make |
 | `7` | `done`: the gate failed (it prints the last 20 lines) or changed files (they are put back) |
-| `8` | `done`: no QA PASS of each type for the code as it is now |
+| `8` | `done`: no QA PASS of each type the task needs (by its risk) for the code as it is now |
 
-The commits of `queue.sh` that only carry `STATUS.md` or
-`docs/DECISIONES.md` (`start`, `fix`, `decide`, `note`, `qa`, `set`) skip
-the project's git hooks (`--no-verify`). `done`, `block`, `recover` and
-`restore-outside` carry code and run them.
+Only `done` runs the project's git hooks. Every other commit of
+`queue.sh` runs none (`--no-verify`, and not even `prepare-commit-msg`):
+it only carries `STATUS.md`,
+`docs/LOG.md` or `docs/DECISIONES.md`, or it puts the tree back (`block`,
+`recover`, `restore-outside`), and a failing hook must never leave the
+queue stuck right when it is trying to recover.
 
 `bucle.sh` recovers any task left IN PROGRESS before starting, and stops by
 itself if the queue is empty, if no task can start, if `AGENT_STOP` exists,
@@ -396,15 +425,19 @@ queue recovery when a session is cut off, the queue state surviving a block
 or a git step that fails, and your own changes never ending up inside a
 task. Also a change out of task that survives a fix, a worker that commits
 broken code before a block, a `done` with no gate or QA, a QA PASS for
-code that changed afterwards and a round that hangs.
+code that changed afterwards, a round that hangs, a high risk task with a
+single combined review, a worker that edits the Log and a project hook
+that fails while the queue puts a task back.
 
 ## 📁 What it leaves in your project
 
 ```text
 my-project/
-├── .desatendido/            the scripts above, gate.sh and the allowed files of each task
+├── .desatendido/            the scripts above, gate.sh, the allowed files and the QA of each task
 ├── docs/
 │   ├── SPEC.md              1 or 2 pages: what it does, inputs, errors, limits
+│   ├── LOG.md               the Log: preparation, starts, fixes, QA, DONE, BLOCKED
+│   ├── DECISIONES.md        what was decided without you, if anything
 │   ├── tareas/Txx.md        full mode only
 │   └── cierres/             full mode only
 ├── tests/acceptance/        one per task, skipped, written by whoever doesn't implement
@@ -426,13 +459,16 @@ They always apply, whatever the team or the mode:
 > [!IMPORTANT]
 > - **Nothing irreversible in the queue.** Real data, deletions,
 >   deployments, publishing or push are done with you watching.
-> - **No safety net, no launch.** It needs verified acceptance tests, the
->   guard in the gate, a green smoke test and a passed launch dry run.
-> - **Nothing is decided silently.** Gaps found while preparing are asked
->   about. Gaps found during the queue follow the autonomy you chose:
->   *proactive* (default) records a prudent rule in `docs/DECISIONES.md`
->   and keeps going, *conservative* blocks the task with the question.
->   Anything that changes what the product does is always left to you.
+> - **No safety net, no launch.** It needs verified acceptance tests and
+>   the guard in the gate. The smoke test and the launch dry run pass
+>   once per machine; until they do, the queue checks the first worker of
+>   each role and the launch is checked to have started.
+> - **Nothing is decided silently.** Gaps are asked about until you
+>   confirm. After that, in phase zero and in the queue, they follow the
+>   autonomy you chose: *proactive* (default) records a prudent rule in
+>   `docs/DECISIONES.md` and keeps going, *conservative* stops with the
+>   question. Anything that changes what the product does is always left
+>   to you.
 > - **Credentials never go into the queue**, and no `.env`, keys or logs
 >   in the commits.
 > - **The queue only commits its own work.** A task won't start while the

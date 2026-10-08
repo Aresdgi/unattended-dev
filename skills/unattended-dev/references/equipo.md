@@ -15,9 +15,16 @@ For each installed tool:
 - **Models**: `opencode models`, `grep -n model ~/.codex/config.toml`,
   `claude --help` (accepts `opus`, `sonnet`, `haiku`), or the `--help` of
   whichever it is.
-- **Non-interactive mode, model and read-only**: check it in its
+- **Non-interactive mode, model, write and read-only**: check it in its
   `--help`. Typical forms: `claude -p --model <m> -- "<order>"`,
   `codex exec -m <m> "<order>"`, `opencode run -m <provider/model> "<order>"`.
+  Each role gets the flags of what it does, never the ones of another
+  role of the same tool: whoever writes (implements, design, and QA when
+  it writes the acceptance tests in full mode) needs a mode that can
+  edit the project (for example `codex exec -s workspace-write`); QA
+  reviewing, a read-only one (`codex exec -s read-only`). A read-only
+  sandbox on a role that has to write wastes a whole call. If a worker
+  calls an API, its mode also needs network.
 - **Orca**: if present, `orca orchestration worker-start --help` says
   which agents it accepts and how the model is passed.
 - **Native goal** of the tool that will orchestrate (for example `/goal`
@@ -33,9 +40,10 @@ background mode.
 
 ## 2. Ask
 
-One round, one question per role, with options taken from the inventory.
-First option: the "usual" one if it exists and is still installed;
-otherwise your recommendation.
+If the "usual" team is saved and still installed, it is a single
+question in the second round of the interview: "the usual (listed)?".
+Otherwise, one extra round, one question per role, with options taken
+from the inventory and your recommendation first:
 
 1. **Orchestrator**: tool and model.
 2. **Implements and fixes**.
@@ -65,8 +73,10 @@ otherwise your recommendation.
 
 ## 4. Save and write
 
-Ask whether to save it as "the usual" in
-`~/.config/modo-desatendido/equipo.md`:
+In the same question, ask whether to save it as "the usual" in
+`~/.config/modo-desatendido/equipo.md`. Its Checks are written there
+anyway, even if the team is not saved: they are what lets the next
+projects skip the smoke test and the dry run.
 
 ```markdown
 - Orchestrator: <tool> / <model>
@@ -75,7 +85,15 @@ Ask whether to save it as "the usual" in
 - QA: <tool> / <model>
 - Worker launcher: <cli | orca>
 - Autonomy: <proactive | conservative>
+
+## Checks
+- Smoke test <YYYY-MM-DD>: <launcher>; implements <tool>/<model>, design <tool>/<model>, QA <tool>/<model>: all OK
+- Dry run <YYYY-MM-DD>: <mechanism> <exact flags>: OK
 ```
+
+A smoke test line counts for 7 days and for that same team; a dry run
+line, until the mechanism or its flags change. Replace the old line of
+the same kind instead of adding another.
 
 Then turn each role into its real command (`references/lanzadores.md`)
 and fill in `ORQUESTADOR.md`.

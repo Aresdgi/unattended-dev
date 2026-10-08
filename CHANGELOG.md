@@ -10,6 +10,75 @@ Every version of unattended-dev, from the very first one. Versions from
 Earlier ones lived in a private repo, under other names: `modo-nocturno`
 (1 and 2) and `modo-desatendido` (3 to 8.1.0).
 
+## [8.9.0] - 2026-10-08
+
+A preparation that runs alone. You answer the questions and confirm once;
+phase zero and the launch run without stopping, so you can leave right
+after that "yes", and the preparation has a time budget that fits the
+size of the milestone.
+
+### Added
+- A preparation budget, from the first question to the queue running:
+  5 minutes and no worker calls for 1 to 3 tasks, 15 minutes and at most
+  one for 4 to 8, 30 minutes for more or in full mode. What does not fit
+  is done once per machine or moved to the queue. The Log records when
+  the preparation started and when the queue was launched.
+- With 3 tasks or fewer, the skill first tells you that a normal session
+  (with `/goal` if your tool has it) does it sooner.
+- A risk per task in `PLAN.md`. Low risk gets one combined QA review;
+  high risk gets fidelity and technical apart, and `queue.sh done` no
+  longer accepts a single combined review for it.
+- The smoke test and the launch dry run are recorded in
+  `~/.config/modo-desatendido/equipo.md` with their date and run once
+  per machine. Without a recent one, the orchestrator checks the model of
+  the first worker of each role and the launch is checked to have
+  started.
+- The README says where the skill pays off and where it does not.
+
+### Changed
+- One confirmation at the end of the interview is the last question. The
+  edge cases a separate adversarial review used to look for, the team,
+  the hours and how to launch are asked in the interview. After the
+  confirmation, a doubt follows the autonomy you chose (proactive writes
+  a prudent rule in `docs/DECISIONES.md`) and only what really needs you
+  stops phase zero: a missing tool, an untrusted folder, a failed smoke
+  test or dry run.
+- In fast mode the acceptance tests are written by whoever prepares and
+  checked to fail against the stubs for the right reason; QA writing
+  them and the reference implementation stay for full mode. Fast mode
+  now covers up to 8 tasks.
+- The Log moves from `STATUS.md` to `docs/LOG.md`, with the same
+  protection: a worker that edits it is out of task. An old Log in
+  `STATUS.md` is moved there by itself.
+- The orchestrator runs the gate before the QA, so no review is spent on
+  code that is going to change, and from the first failure it may read
+  the task's diff and the failing test to give a concrete fix order.
+- The cases of each task follow what it has (one invalid case per error,
+  the limits of each input, one valid case per rule, or each state of a
+  screen) instead of a fixed 6 and 6.
+- With a UI, each acceptance test is a Playwright test with assertions on
+  the states of the SPEC, and Playwright starts the server itself.
+- Each role gets the flags of what it does: write mode for whoever
+  writes, read-only for QA reviewing.
+- An acceptance test only checks its own task, never an output a later
+  task will change.
+- `block`, `recover` and `restore-outside` run none of the project's git
+  hooks (the other commits of `queue.sh` neither, not even the
+  `prepare-commit-msg` or `reference-transaction` that `--no-verify`
+  leaves), so a failing hook can
+  no longer leave the queue stuck while it puts a task back. `done` still
+  runs them.
+
+### Fixed
+- `queue.sh` reads the Log as it last committed it, so a worker that
+  overwrites `docs/LOG.md` (a common name) cannot hide where its task
+  started: `block` and `restore-outside` still put the code back.
+- A Log line that cannot be written makes the step fail instead of
+  reporting it as recorded.
+- `LANZAR.md`, written after the launch, could make the first
+  `queue.sh start` refuse because of a dirty tree. It is in `.gitignore`
+  now.
+
 ## [8.8.0] - 2026-10-08
 
 Locks. The rules that keep broken or tampered work out of DONE are now
@@ -388,6 +457,7 @@ First version, as **modo-nocturno** (night mode).
 - Startup checks: jq, Orca, running inside an Orca terminal, opencode
   permissions, fuses and an empty queue.
 
+[8.9.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.9.0
 [8.8.0]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.8.0
 [8.7.2]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.2
 [8.7.1]: https://github.com/Aresdgi/unattended-dev/releases/tag/v8.7.1

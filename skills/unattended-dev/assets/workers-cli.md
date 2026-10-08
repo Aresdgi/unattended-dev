@@ -1,6 +1,6 @@
 ## Workers: CLI
 
-<!-- unattended-dev v8.8. Phase zero pastes this block into ORQUESTADOR.md, in place of {WORKERS}, when the worker launcher is CLI. -->
+<!-- unattended-dev v8.9. Phase zero pastes this block into ORQUESTADOR.md, in place of {WORKERS}, when the worker launcher is CLI. -->
 
 Each worker is one command that `lanzar-worker.sh` runs, waits for and
 ends. If a flag fails, check its `--help`.
@@ -9,9 +9,11 @@ ends. If a flag fails, check its `--help`.
 .desatendido/lanzar-worker.sh <role> <Txx> --allowed "<task files>" --readonly "{TESTS_FOLDER}" -- <command> "<order>"
 ```
 
-- Implementer and design: `--allowed` with the task's files.
+- Implementer and design: `--allowed` with the task's files, and their
+  tool's write mode.
 - QA: no `--allowed` (any change is OUT OF TASK) and its tool's read-only
-  mode.
+  mode. The commands in the Team table already carry the right flags for
+  each role: do not swap them.
 - It prints the last 30 lines of the worker; that is all you read.
 - A worker **failed** if `lanzar-worker.sh` exits with anything other than
   0: 3 out of task, 124 timeout (20 minutes), 128+N killed, or the

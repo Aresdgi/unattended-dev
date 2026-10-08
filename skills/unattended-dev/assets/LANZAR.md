@@ -1,6 +1,6 @@
 # How to launch the queue
 
-<!-- unattended-dev v8.8. Fill in everything. If you launched it yourself, fill in "Launched for you" and delete "Launch it yourself"; if not, the other way round. -->
+<!-- unattended-dev v8.9. Fill in everything. If you launched it yourself, fill in "Launched for you" and delete "Launch it yourself"; if not, the other way round. If phase zero stopped, fill in "Phase zero stopped" first. It is in .gitignore: it is written after the launch. -->
 
 **Before:** note the quota left on each tool of the team and the time. If
 one of them is not enough for the queue, wait for it to renew or switch
@@ -9,9 +9,14 @@ accounts before starting. {CONTINUE_NOTE}
 Keep the Mac plugged in: `caffeinate` keeps it awake, but on battery with
 the lid closed it will sleep anyway.
 
+## Phase zero stopped
+
+{Only if it stopped: why, in one line, and the exact command or answer it needs from you. Delete this section otherwise.}
+
 ## Launched for you
 
-- **Mechanism:** {MECHANISM} (dry run passed at {DRY_RUN_TIME})
+- **Preparation:** first question at {PREP_START}, queue launched at {LAUNCH_TIME} ({PREP_MINUTES} minutes, {WORKER_CALLS} worker calls, budget {BUDGET})
+- **Mechanism:** {MECHANISM} (dry run: {DRY_RUN}, passed now, recorded on a date, or not run and the launch checked)
 - **Session:** {SESSION_ID}
 - **Watch it:** `{WATCH_CMD}`
 - **Stop it:** `{STOP_CMD}`
@@ -60,7 +65,7 @@ the expected model.
 To follow progress:
 
 ```zsh
-cd {PROJECT} && git log --oneline -10 && grep -E "PENDING|IN PROGRESS|DONE|BLOCKED" STATUS.md
+cd {PROJECT} && git log --oneline -10 && grep -E "PENDING|IN PROGRESS|DONE|BLOCKED" STATUS.md && tail -n 5 docs/LOG.md
 ```
 
 If it gets cut off (quota, laptop asleep...), launch it again the same way:

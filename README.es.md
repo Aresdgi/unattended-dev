@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="CHANGELOG.es.md"><img src="https://img.shields.io/badge/versión-8.8.0-7c3aed?style=for-the-badge" alt="versión 8.8.0"></a>
+  <a href="CHANGELOG.es.md"><img src="https://img.shields.io/badge/versión-8.9.0-7c3aed?style=for-the-badge" alt="versión 8.8.0"></a>
   <img src="https://img.shields.io/badge/estado-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="tests de los scripts"></a>
   <a href="#licencia"><img src="https://img.shields.io/badge/licencia-MIT-22c55e?style=for-the-badge" alt="licencia MIT"></a>
@@ -34,6 +34,12 @@
 > [Tests](#-tests)), pero las ejecuciones desatendidas completas solo se han
 > probado en unos pocos proyectos pequeños. Revisa lo que construye antes de
 > fiarte.
+>
+> **Dónde compensa:** colas largas de CLIs, librerías y funcionalidades
+> acotadas, que trabajan horas o toda la noche. **Dónde no:** hitos de
+> pocas tareas (una sesión normal con `/goal` es más rápida, y la skill te
+> lo dice), interfaces con el diseño por descubrir y productos con
+> decisiones abiertas.
 
 > [!NOTE]
 > **Antes se llamaba `modo-desatendido`** y vivía en el marketplace
@@ -104,8 +110,9 @@ eliges quién orquesta, quién implementa y quién revisa.
 
 ### 🌙 Se lanza solo
 
-Le dices "sí" y deja al orquestador trabajando en segundo plano, con el
-Mac despierto. No tienes que abrir ninguna terminal.
+Respondes las preguntas y dices "sí" una vez. Prepara todo y deja al
+orquestador trabajando en segundo plano, con el Mac despierto. Te puedes
+ir justo después de ese "sí".
 
 </td>
 </tr>
@@ -132,17 +139,19 @@ se hace contigo delante.
 
 ### 🧭 No se para en cada duda
 
-Antes de lanzar, otro modelo busca huecos en la SPEC y los resolvéis en una
-ronda. Si aun así aparece uno de noche, elige la opción más prudente, la
-apunta en `docs/DECISIONES.md` y sigue.
+La entrevista pregunta desde el principio los límites y los casos
+extremos, con una recomendación, y los resolvéis en una ronda. Si aun así
+aparece un hueco después, elige la opción más prudente, la apunta en
+`docs/DECISIONES.md` y sigue.
 
 </td>
 <td valign="top">
 
 ### 🗒️ Todo queda apuntado
 
-Los inicios, arreglos, decisiones y bloqueos van solos al Log de
-`STATUS.md`, y el orquestador te informa en tu idioma.
+Los inicios, arreglos, decisiones y bloqueos van solos a `docs/LOG.md`,
+junto con cuándo empezó la preparación y cuándo se lanzó la cola, y el
+orquestador te informa en tu idioma.
 
 </td>
 </tr>
@@ -157,34 +166,43 @@ Los inicios, arreglos, decisiones y bloqueos van solos al Log de
 ## 🧭 Cómo funciona
 
 <p align="center">
-  <img src=".github/assets/flow.es.svg" alt="Cómo funciona: entrevista, plan y equipo y fase cero contigo; la cola desatendida sin ti; después la revisión" width="720">
+  <img src=".github/assets/flow.es.svg" alt="Cómo funciona: la entrevista y una confirmación contigo; la fase cero y la cola sin ti; después la revisión" width="720">
 </p>
 
 | | Fase | Qué pasa |
 | :-: | --- | --- |
-| 1 | **Entrevista** | Como mucho 4 preguntas por ronda, con opciones y una recomendación. Termina con un resumen y "¿lo armo así?" |
-| 2 | **Plan y equipo** | Tareas pequeñas con sus archivos cerrados. Inventario de lo instalado y un papel para cada herramienta |
-| 3 | **Fase cero** | Esqueleto, gate, tests de aceptación en skip, `AGENTS.md`, `ORQUESTADOR.md` y prueba de humo de todo el equipo |
-| 4 | **Lanzamiento** | Te pregunta "¿lo lanzo yo?". Con un sí, hace una prueba en seco y deja al orquestador en segundo plano, en una sesión nueva con el contexto limpio |
-| 5 | **Revisión** | Al volver, dices "revisa la sesión": comprueba la cola, la guardia, el gate y una prueba a mano |
+| 1 | **Entrevista** | Como mucho 4 preguntas por ronda, con opciones y una recomendación: la idea, los límites y casos extremos, el equipo (o "el de siempre"), las horas y cómo lanzarlo |
+| 2 | **Confirmación** | Un resumen con las tareas, sus archivos y su riesgo, y "¿lo monto así y lo dejo corriendo?". Es la última pregunta |
+| 3 | **Fase cero** | Sola: esqueleto, gate, tests de aceptación en skip, `AGENTS.md` y `ORQUESTADOR.md`. Prueba de humo y prueba en seco solo si esta máquina aún no las ha pasado |
+| 4 | **Lanzamiento** | También solo: el orquestador en segundo plano, en una sesión nueva con el contexto limpio |
+| 5 | **Revisión** | Al volver, dices "revisa la sesión": primero lo que se decidió sin ti, después la cola, la guardia, el gate y una prueba a mano |
+
+La preparación, de la primera pregunta a la cola en marcha, tiene un
+presupuesto: **5 minutos y ninguna llamada a workers** para 1 a 3 tareas,
+**15 minutos y como mucho una** para 4 a 8, **30 minutos** para más o en
+modo completo. Lo que no cabe se hace una vez por máquina o pasa a la
+cola.
 
 ### Cada tarea de la cola
 
-El orquestador **coordina, no implementa**: trabaja con lo que le devuelven
-los scripts, no con el código. Única excepción: tras dos arreglos fallidos
-puede leer el test que falla y la función que prueba, para decidir entre
-bloquear la tarea o dar una orden más clara.
+El orquestador **coordina, no implementa**: mientras una tarea va bien,
+trabaja con lo que le devuelven los scripts, no con el código. Desde el
+primer fallo puede leer el diff de la tarea y el test que falla, para dar
+al worker una orden de arreglo concreta; nunca edita código él.
 
 <p align="center">
   <img src=".github/assets/task.es.svg" alt="Cada tarea: queue.sh next y start, el worker, el gate y la QA, arreglos como mucho dos veces, y queue.sh done o block" width="640">
 </p>
 
 - **Gate**: guardia de tests, typecheck, tests y build, en
-  `.desatendido/gate.sh`. `queue.sh done` lo ejecuta él mismo antes de cerrar.
-- **QA**: en solo lectura, una por tipo. *Fidelidad* (hace lo que pide la
-  SPEC, nada inventado), *técnica* (errores, casos límite, seguridad) y
-  *diseño* (capturas en móvil y escritorio, estados vacío y error,
-  accesibilidad).
+  `.desatendido/gate.sh`. Va antes que la QA, para no gastar revisiones en
+  un código que va a cambiar, y `queue.sh done` lo vuelve a ejecutar él
+  mismo antes de cerrar.
+- **QA**: en solo lectura, según el riesgo de la tarea. Riesgo bajo: una
+  revisión *combinada*. Riesgo alto: *fidelidad* (hace lo que pide la SPEC,
+  nada inventado) y *técnica* (errores, casos límite, seguridad) por
+  separado. Y *diseño* (capturas en móvil y escritorio, estados vacío y
+  error, accesibilidad) si toca la interfaz.
 
 Si la sesión se corta (cuota, portátil dormido…), se vuelve a lanzar igual:
 lo que quedó a medias de la tarea IN PROGRESS se guarda en una rama de
@@ -192,10 +210,12 @@ copia y esa tarea vuelve a empezar desde limpio.
 
 ## 🌙 Lanzamiento automático
 
-Al terminar la fase cero te pregunta **"¿lo lanzo yo?"**. Con un sí elige el
-mecanismo según el orquestador, hace una **prueba en seco** con un objetivo
-trivial (el orquestador lanzado arranca un worker de prueba y lo libera, para
-probar la cadena entera) y solo entonces lanza de verdad.
+Cómo lanzarlo se pregunta en la entrevista, y al terminar la fase cero lo
+lanza sin volver a preguntar. Elige el mecanismo según el orquestador y,
+la primera vez en tu máquina, hace una **prueba en seco** con un objetivo
+trivial (el orquestador lanzado arranca un worker de prueba y lo libera,
+para probar la cadena entera). Después queda apuntada, y solo comprueba
+que el lanzamiento arrancó.
 
 | Orquestador | Cómo lo lanza | Cómo mirarlo | Cómo pararlo |
 | --- | --- | --- | --- |
@@ -213,24 +233,28 @@ probar la cadena entera) y solo entonces lanza de verdad.
 - Un **fusible de tiempo** para la sesión al acabar esas horas aunque el
   goal no termine nunca. Si dices "sin límite", queda como red de
   seguridad a las 24 horas.
-- Si tmux no está instalado, **te pide permiso** antes de instalarlo.
+- Si tmux no está instalado, **te pide permiso** en la entrevista, antes
+  de instalarlo.
 - El CLI de Orca solo funciona dentro de una terminal de Orca. Por eso, si
   los workers van con Orca, el orquestador arranca en una pestaña de Orca.
   Si no se puede usar Orca, **para y te pregunta**; nunca cambia de lanzador
   por su cuenta.
-- Si prefieres lanzarlo tú, dile que no y te da `LANZAR.md` rellenado.
+- Si prefieres lanzarlo tú, dilo en la entrevista y te da `LANZAR.md`
+  rellenado.
 
 ## ⚡ Dos modos
 
 | | 🏎️ Rápido · *por defecto* | 🏗️ Completo |
 | --- | --- | --- |
-| **Cuándo** | 6 tareas o menos y nada arriesgado | Proyecto grande, datos reales, alto riesgo o porque lo pides |
+| **Cuándo** | 8 tareas o menos y nada arriesgado | Más de 8 tareas, datos reales, alto riesgo o porque lo pides |
 | **Entrevista** | 1 o 2 rondas | Las que hagan falta |
-| **Aprobaciones** | Una, al final de la preparación | Al final de cada fase |
+| **Tú** | Respondes y confirmas una vez | Igual |
+| **Tests de aceptación** | Los escribe quien prepara, comprobados contra los stubs | Los escribe QA, comprobados contra una implementación de referencia |
 | **Documentos** | `docs/SPEC.md` y `PLAN.md` | SPEC, una tarea por archivo y un cierre por tarea |
-| **Fase cero** | Unos 15 minutos | Entre 30 y 60 minutos |
+| **Preparación** | 5 minutos (1 a 3 tareas) o 15 (4 a 8) | Hasta 30 minutos |
 
-Al terminar la entrevista te propone uno, en una línea y con el motivo.
+Con 3 tareas o menos, primero te dice que una sesión normal lo hace antes.
+Durante la entrevista te propone un modo, en una línea y con el motivo.
 
 ## 🎛️ Tu equipo, tus reglas
 
@@ -261,8 +285,11 @@ Si quieres, lo guarda como "el de siempre" en
 - Worker launcher: cli
 ```
 
-Antes de lanzar, **prueba de humo**: cada papel responde
-`OK <nombre exacto del modelo>` y no se lanza nada hasta que todos estén en verde.
+Una **prueba de humo**, una vez por máquina: cada papel responde
+`OK <nombre exacto del modelo>`. Se apunta en ese mismo archivo con la
+fecha y se repite si cambia el equipo o pasan 7 días. Si no hay una
+reciente, el orquestador comprueba el modelo del primer worker de cada
+papel.
 
 La skill habla siempre en tu idioma, aunque sus archivos estén en inglés.
 
@@ -303,8 +330,8 @@ siguiente tarea, las dependencias, propagar los BLOCKED, quitar el skip al
 empezar una tarea, **cerrar** una tarea en un solo paso atómico y
 **recuperar** una tarea que se cortó. Cada tarea se mide contra el commit
 del que partió: `done` se niega si tocó archivos fuera de su lista, si el
-gate falla o si no hay QA PASS para el código exacto que se cierra. Cada
-cambio de estado lleva su commit.
+gate falla o si no hay QA PASS, del tipo que pide su riesgo, para el
+código exacto que se cierra. Cada cambio de estado lleva su commit.
 
 </td>
 <td width="25%" valign="top">
@@ -331,7 +358,7 @@ los de Orca.
 # La cola: siguiente tarea, empezarla (quita el skip de su test) y cerrarla
 .desatendido/queue.sh next            # -> T01
 .desatendido/queue.sh start T01
-.desatendido/queue.sh qa T01 fidelity PASS "resumen"  # veredicto de QA para el código tal como está
+.desatendido/queue.sh qa T01 combined PASS "resumen"  # veredicto de QA para el código tal como está
 .desatendido/queue.sh done T01 "resumen"   # comprueba, y DONE + commit, de una vez
 .desatendido/queue.sh block T01 "motivo"   # rama de copia + archivos de vuelta + BLOCKED, de una vez
 .desatendido/queue.sh fix T01 "motivo"     # cuenta un arreglo; sale con 5 si no quedan
@@ -366,14 +393,16 @@ touch AGENT_STOP   # para al terminar la vuelta en curso
 | `3` | Uso o estado incorrecto: por ejemplo `start` con una dependencia que no está DONE u otra tarea IN PROGRESS |
 | `4` | Falló un paso de git; no se marcó nada |
 | `5` | No quedan arreglos ni decisiones: hay que bloquear la tarea |
-| `6` | Archivos fuera de la tarea desde que empezó (`outside`, `done`). También `fix`, `decide`, `note`, `qa` y `set` si `STATUS.md` tiene cambios que no hizo `queue.sh` |
+| `6` | Archivos fuera de la tarea desde que empezó (`outside`, `done`). También `fix`, `decide`, `note`, `qa` y `set` si `STATUS.md`, `docs/LOG.md` o `docs/DECISIONES.md` tienen cambios que no hizo `queue.sh` |
 | `7` | `done`: el gate falló (imprime las últimas 20 líneas) o cambió archivos (se devuelven a su estado) |
-| `8` | `done`: falta un QA PASS de algún tipo para el código tal como está |
+| `8` | `done`: falta un QA PASS de algún tipo de los que pide la tarea (según su riesgo) para el código tal como está |
 
-Los commits de `queue.sh` que solo llevan `STATUS.md` o
-`docs/DECISIONES.md` (`start`, `fix`, `decide`, `note`, `qa`, `set`) se
-saltan los hooks de git del proyecto (`--no-verify`). `done`, `block`,
-`recover` y `restore-outside` llevan código y los ejecutan.
+Solo `done` ejecuta los hooks de git del proyecto. El resto de commits de
+`queue.sh` no ejecutan ninguno (`--no-verify`, y ni siquiera
+`prepare-commit-msg`): solo llevan `STATUS.md`,
+`docs/LOG.md` o `docs/DECISIONES.md`, o devuelven el árbol a su estado
+(`block`, `recover`, `restore-outside`), y un hook que falla nunca debe
+atascar la cola justo cuando intenta recuperarse.
 
 `bucle.sh` recupera cualquier tarea que se quedara IN PROGRESS antes de
 empezar, y se para solo si la cola se vacía, si ninguna tarea puede
@@ -400,15 +429,19 @@ el estado de la cola sobreviva a un bloqueo o a un paso de git que falla, y
 que tus propios cambios nunca acaben dentro de una tarea. También un cambio
 fuera de tarea que sobrevive a un arreglo, un worker que hace commit de
 código roto antes de un bloqueo, un `done` sin gate ni QA, un QA PASS para
-código que cambió después y una vuelta que se cuelga.
+código que cambió después, una vuelta que se cuelga, una tarea de riesgo
+alto con una sola revisión combinada, un worker que edita el Log y un hook
+del proyecto que falla mientras la cola devuelve una tarea a su estado.
 
 ## 📁 Lo que deja en tu proyecto
 
 ```text
 mi-proyecto/
-├── .desatendido/            scripts de arriba, gate.sh y los archivos permitidos de cada tarea
+├── .desatendido/            scripts de arriba, gate.sh, los archivos permitidos y la QA de cada tarea
 ├── docs/
 │   ├── SPEC.md              1 o 2 páginas: qué hace, entradas, errores, límites
+│   ├── LOG.md               el Log: preparación, inicios, arreglos, QA, DONE, BLOCKED
+│   ├── DECISIONES.md        lo que se decidió sin ti, si hubo algo
 │   ├── tareas/Txx.md        solo en modo completo
 │   └── cierres/             solo en modo completo
 ├── tests/acceptance/        uno por tarea, en skip, escritos por quien no implementa
@@ -431,13 +464,15 @@ Valen siempre, sea cual sea el equipo o el modo:
 > - **Nada irreversible en la cola.** Datos reales, borrados, despliegues,
 >   publicar o push se hacen contigo delante.
 > - **Sin red de seguridad no hay lanzamiento.** Hacen falta tests de
->   aceptación verificados, la guardia en el gate, la prueba de humo en verde
->   y la prueba en seco del lanzamiento superada.
-> - **Nada se decide en silencio.** Los huecos que aparecen al preparar se
->   preguntan. Los que aparecen durante la cola siguen la autonomía que
->   elegiste: *proactiva* (por defecto) apunta una regla prudente en
->   `docs/DECISIONES.md` y sigue, *conservadora* bloquea la tarea con la
->   pregunta. Lo que cambie lo que hace el producto siempre te lo deja a ti.
+>   aceptación verificados y la guardia en el gate. La prueba de humo y la
+>   prueba en seco del lanzamiento se pasan una vez por máquina; hasta
+>   entonces, la cola comprueba el primer worker de cada papel y se
+>   comprueba que el lanzamiento arrancó.
+> - **Nada se decide en silencio.** Los huecos se preguntan hasta que
+>   confirmas. Después, en la fase cero y en la cola, siguen la autonomía
+>   que elegiste: *proactiva* (por defecto) apunta una regla prudente en
+>   `docs/DECISIONES.md` y sigue, *conservadora* para con la pregunta. Lo
+>   que cambie lo que hace el producto siempre te lo deja a ti.
 > - **Las credenciales nunca entran en la cola**, ni `.env`, claves o logs
 >   en los commits.
 > - **La cola solo hace commit de su propio trabajo.** Una tarea no empieza

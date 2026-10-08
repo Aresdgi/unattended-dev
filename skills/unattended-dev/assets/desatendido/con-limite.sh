@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.8: runs a command with a time limit (macOS has no
+# unattended-dev v8.9: runs a command with a time limit (macOS has no
 # timeout). The command gets its own process group, and the whole group is
 # stopped (TERM, then KILL 5 s later) when the time runs out, when this
 # script is interrupted and when the command ends, so nothing it started is

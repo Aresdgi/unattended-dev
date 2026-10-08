@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/version-8.6.0-7c3aed?style=for-the-badge" alt="version 8.6.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-8.6.0-7c3aed?style=for-the-badge" alt="version 8.6.0"></a>
   <img src="https://img.shields.io/badge/status-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="script tests"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="MIT license"></a>
@@ -553,6 +553,13 @@ same protections as the CLI (`vigilar-worker.sh`). tmux is only needed if
 the orchestrator has `/goal` but no background mode, like Codex.
 
 </details>
+
+## 📜 Changelog
+
+What changed in each version, from the first one (as `modo-nocturno`), is
+in [CHANGELOG.md](CHANGELOG.md). Every public version also has its
+[release](https://github.com/Aresdgi/unattended-dev/releases): on GitHub,
+**Watch → Custom → Releases** to get notified of new ones.
 
 ## License
 

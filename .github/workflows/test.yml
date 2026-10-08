@@ -17,5 +17,13 @@ jobs:
         run: for f in skills/unattended-dev/assets/desatendido/*.sh tests/run.sh; do bash -n "$f"; done
       - name: Scripts are executable
         run: test -z "$(find skills/unattended-dev/assets/desatendido -name '*.sh' ! -perm -u+x)"
+      - name: Version is documented
+        run: |
+          v=$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' .claude-plugin/plugin.json)
+          grep -qF "## [$v] - " CHANGELOG.md
+          grep -qF "## [$v] - " CHANGELOG.es.md
+          grep -qF "badge/version-$v-" README.md
+          grep -qF "badge/versión-$v-" README.es.md
+          ! grep -rn "unattended-dev v[0-9]" skills/ | grep -vF "unattended-dev v${v%.*}"
       - name: Tests
         run: bash tests/run.sh

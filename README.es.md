@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/versión-8.6.0-7c3aed?style=for-the-badge" alt="versión 8.6.0"></a>
+  <a href="CHANGELOG.es.md"><img src="https://img.shields.io/badge/versión-8.6.0-7c3aed?style=for-the-badge" alt="versión 8.6.0"></a>
   <img src="https://img.shields.io/badge/estado-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="tests de los scripts"></a>
   <a href="#licencia"><img src="https://img.shields.io/badge/licencia-MIT-22c55e?style=for-the-badge" alt="licencia MIT"></a>
@@ -559,6 +559,13 @@ falta si el orquestador tiene `/goal` pero no modo en segundo plano, como
 Codex.
 
 </details>
+
+## 📜 Cambios
+
+Lo que cambió en cada versión, desde la primera (como `modo-nocturno`),
+está en [CHANGELOG.es.md](CHANGELOG.es.md). Cada versión pública tiene
+además su [release](https://github.com/Aresdgi/unattended-dev/releases): en
+GitHub, **Watch → Custom → Releases** para que te avise de las nuevas.
 
 ## Licencia
 

@@ -42,6 +42,19 @@ starting.
   print the first task).
 - Compute the values of the cases with a script, not from memory.
 
+## 2b. Adversarial review of the SPEC
+
+Before writing tests, a role that did not write the SPEC (normally QA,
+through the chosen launcher) looks for what it leaves undefined: limits
+of each input, empty and zero values, extremes that make a result
+infinite, huge or negative, overflow, rounding, inputs that contradict
+each other. Each gap comes back with a proposed rule.
+
+Resolve them now, with the user, in **one** round of questions (the
+proposals first, marked as recommended). In fast mode this is the only
+extra stop before the final approval. Update the SPEC with the answers.
+Gaps found here cost minutes; found during the queue they block tasks.
+
 ## 3. Acceptance tests
 
 1. They are written by a role that is **not** the implementer (usually
@@ -71,6 +84,8 @@ the queue removes the skip and they are read-only while you work". If Claude is 
   `orca status --json` fails, or `orca skills get orchestration` is
   unknown), stop, tell the user why and let them choose: fix it or switch.
   Never switch on your own; note the decision in the Log of STATUS.md.
+- Fill `{LANGUAGE}` with the user's language and `{AUTONOMY}` with the
+  autonomy they chose (`references/equipo.md`).
 - With Orca: run `orca skills get orchestration` once now, so the commands
   you write match the installed Orca, and fill `{ORCA_AGENTS}` with each
   role's `--agent` and `--model` (opencode takes no `--model`: its model

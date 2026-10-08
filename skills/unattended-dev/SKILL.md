@@ -3,7 +3,7 @@ name: unattended-dev
 description: Turns a rough idea into a project that builds itself, with whatever team of agents and models the user wants (Claude, Codex, opencode or others, with or without Orca). Asks until the SPEC is clear, plans small tasks, picks the team from what is installed, prepares a minimal base with protected tests and launches the orchestrator in the background. Use it when the user says "I want to build...", "set up the project", "make it build itself", "unattended mode", "overnight mode", "leave it running" or "launch it", or in Spanish "quiero hacer...", "monta el proyecto", "prepáralo para que se haga solo", "modo desatendido", "modo nocturno", "déjalo picando" or "lánzalo", for a new project or a milestone of an existing repo.
 ---
 
-# unattended-dev v8.5
+# unattended-dev v8.6
 
 Always reply to the user in their language.
 
@@ -58,7 +58,7 @@ these scripts; do not build others for the same job.
 
 | Script | What for |
 | --- | --- |
-| `queue.sh` | The mechanical decisions, in code: next task, dependencies, BLOCKED propagation, removing the skip when a task starts, closing a task (`done` / `block`) in one atomic step and recovering a task that was cut off. Every state change is committed, so a stash can never undo it |
+| `queue.sh` | The mechanical decisions, in code: next task, dependencies, BLOCKED propagation, removing the skip when a task starts, counting fixes (`fix`), recording default decisions (`decide`), closing a task (`done` / `block`) in one atomic step and recovering a task that was cut off. Every change is committed and logged in STATUS.md, so a stash can never undo it |
 | `lanzar-worker.sh` | CLI launcher: run any worker with a time limit, a log, the last 30 lines, tests read-only, and a warning if it touches files outside its task (committed or not). Also the smoke test |
 | `vigilar-worker.sh` | The same protections in two steps (`begin` before, `end` after) for workers that start and finish on their own, such as Orca workers |
 | `guardia-tests.sh` | Inside the gate: fails if the acceptance tests change in anything other than removing the skip, if someone adds a skip or if the current task has not removed it |
@@ -85,7 +85,11 @@ They do not depend on the team or the mode:
   publishing or push. That is done supervised.
 - Without verified acceptance tests, the guard in the gate, a green smoke
   test and a passed launch dry run, there is no launch.
-- If you find a gap in the SPEC, ask. Do not fill it in silently.
+- While preparing, if you find a gap in the SPEC, ask. Do not fill it in
+  silently. During the queue, gaps follow the autonomy the user chose:
+  proactive records a prudent default in `docs/DECISIONES.md` and keeps
+  going; conservative blocks the task with the question. Either way,
+  nothing is decided silently.
 
 ## Existing repo
 

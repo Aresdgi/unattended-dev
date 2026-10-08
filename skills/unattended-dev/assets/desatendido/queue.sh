@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.5: deterministic queue state. The orchestrator and
+# unattended-dev v8.6: deterministic queue state. The orchestrator and
 # bucle.sh call this instead of deciding by reading the table themselves.
 #
 # Reads and writes the queue table in STATUS.md (or $STATUS_FILE):
@@ -9,7 +9,9 @@
 # comma-separated list of task ids.
 #
 # Every state change is committed at once, so a stash or a crash can never
-# bring back an old state. Closing a task is one atomic command.
+# bring back an old state. Closing a task is one atomic command. Each step
+# also writes its own line in the Log of STATUS.md, so the Log never depends
+# on the orchestrator remembering it.
 #
 # Usage (from the project root):
 #   queue.sh next                 Print the next PENDING task whose dependencies
@@ -20,6 +22,14 @@
 #                                 its test (not committed: it is part of the task).
 #                                 Refuses if the working tree has other changes, so
 #                                 done and block only ever take this task's work.
+#   queue.sh fix <task> <reason>  Count one fix attempt (committed in the Log).
+#                                 Exit 5 when the task has no fixes left: block it.
+#                                 The limit is 2 ($QUEUE_MAX_FIXES), plus one per
+#                                 decision recorded for the task.
+#   queue.sh decide <task> <text> Record a default decision for a gap in the SPEC
+#                                 in docs/DECISIONES.md ($DECISIONS_FILE) and the
+#                                 Log, committed at once so it survives a block.
+#                                 Exit 5 after 2 decisions for one task: block it.
 #   queue.sh done <task> <msg>    DONE and commit everything as "<task>: <msg>".
 #   queue.sh block <task> <why>   Stash the task's changes, then BLOCKED (committed).
 #   queue.sh recover              Every IN PROGRESS task was cut off: stash its
@@ -31,9 +41,13 @@
 #   queue.sh summary              "Progress: X DONE, Y BLOCKED, Z PENDING".
 #
 # Exit 3: wrong usage or state. Exit 4: a git step failed; nothing was marked.
+# Exit 5: no fixes or decisions left for the task.
 set -u
 STATUS="${STATUS_FILE:-STATUS.md}"
-case "${1:-}" in next|start|done|block|recover|set|state|tests|summary) ;; *) sed -n "2,31p" "$0"; exit 3;; esac
+DECISIONS="${DECISIONS_FILE:-docs/DECISIONES.md}"
+MAX_FIXES="${QUEUE_MAX_FIXES:-2}"
+MAX_DECISIONS=2
+case "${1:-}" in next|start|fix|decide|done|block|recover|set|state|tests|summary) ;; *) sed -n "2,45p" "$0"; exit 3;; esac
 [ -f "$STATUS" ] || { echo "queue: $STATUS not found" >&2; exit 3; }
 git rev-parse -q --verify HEAD >/dev/null 2>&1 || { echo "queue: needs a git repo with at least one commit" >&2; exit 3; }
 
@@ -58,6 +72,15 @@ write_state() { # change the state in the file only
               if (id == t) { $6 = " " s " " } }
     { print }' "$STATUS" > "$tmp" && cat "$tmp" > "$STATUS"
   rm -f "$tmp"
+}
+
+log_line() { # append one line to the Log at the end of STATUS.md (not committed)
+  grep -q '^## Log' "$STATUS" || printf '\n## Log\n\n' >> "$STATUS"
+  printf -- '- %s %s\n' "$(date '+%F %H:%M')" "$*" >> "$STATUS"
+}
+
+since_start() { # since_start <task> <word>: how many "<word>" lines since its last start
+  awk -v t="$1" -v w="$2" '$1 == "-" && $4 == t { if ($5 == "started") n = 0; else if ($5 == w || $5 == w ":") n++ } END { print n + 0 }' "$STATUS"
 }
 
 commit_status() { # commit STATUS.md alone, if it changed
@@ -122,6 +145,7 @@ case "$cmd" in
         deps=$(rows | awk -F'\t' -v t="$t" '$1 == t { print $2 }' | tr ',' ' ')
         for d in $deps; do
           if echo "$blocked" | grep -qx "$d"; then
+            log_line "$t BLOCKED: depends on $d, which is BLOCKED"
             set_state "$t" BLOCKED || exit 4
             echo "queue: $t BLOCKED because $d is BLOCKED" >&2; changed=1; break
           fi
@@ -144,26 +168,56 @@ case "$cmd" in
   start)
     task="${1:?queue start <task>}"; need_state "$task" PENDING; need_clean_tree "$task"
     test_file=$(rows | awk -F'\t' -v t="$task" '$1 == t { print $3 }')
+    log_line "$task started"
     set_state "$task" "IN PROGRESS" || exit 4
     if [ -n "$test_file" ] && [ "$test_file" != none ]; then unskip "$test_file" || exit 3; echo "$test_file"; fi ;;
+  fix)
+    task="${1:?queue fix <task> <reason>}"; shift; why="${*:-no reason given}"
+    need_state "$task" "IN PROGRESS"
+    used=$(since_start "$task" fix); allowed=$(( MAX_FIXES + $(since_start "$task" decision) ))
+    if [ "$used" -ge "$allowed" ]; then
+      echo "queue: $task has used its $allowed fixes; block it with: queue.sh block $task \"<reason>\"" >&2; exit 5
+    fi
+    log_line "$task fix $((used + 1)): $why"
+    commit_status "queue: $task fix $((used + 1))" || exit 4
+    echo "queue: $task fix $((used + 1)) of $allowed" ;;
+  decide)
+    task="${1:?queue decide <task> <decision>}"; shift; text="${*:?queue decide <task> <decision>}"
+    need_state "$task" "IN PROGRESS"
+    if [ "$(since_start "$task" decision)" -ge "$MAX_DECISIONS" ]; then
+      echo "queue: $task already has $MAX_DECISIONS decisions; block it and leave it for the user" >&2; exit 5
+    fi
+    mkdir -p "$(dirname "$DECISIONS")"
+    [ -f "$DECISIONS" ] || printf '# Default decisions\n\nTaken during the unattended queue for gaps in the SPEC. Review them and undo the ones you do not want.\n\n' > "$DECISIONS"
+    printf -- '- %s %s: %s\n' "$(date '+%F %H:%M')" "$task" "$text" >> "$DECISIONS"
+    log_line "$task decision: $text"
+    if ! { git add -- "$STATUS" "$DECISIONS" && git commit -q -m "queue: $task decision" -- "$STATUS" "$DECISIONS"; }; then
+      echo "queue: could not commit the decision" >&2; exit 4
+    fi
+    echo "queue: decision for $task recorded in $DECISIONS (one more fix allowed)" ;;
   done)
     task="${1:?queue done <task> <message>}"; shift; msg="${*:-done}"
     need_state "$task" "IN PROGRESS"
-    write_state "$task" DONE || exit 3
+    backup=$(mktemp); cp "$STATUS" "$backup"
+    write_state "$task" DONE || { rm -f "$backup"; exit 3; }
+    log_line "$task DONE: $msg"
     if ! { git add -A && git commit -q -m "$task: $msg"; }; then
-      write_state "$task" "IN PROGRESS"; git reset -q -- "$STATUS" 2>/dev/null
+      cat "$backup" > "$STATUS"; rm -f "$backup"; git reset -q -- "$STATUS" 2>/dev/null
       echo "queue: commit failed; $task is still IN PROGRESS" >&2; exit 4
     fi
+    rm -f "$backup"
     echo "queue: $task DONE" ;;
   block)
     task="${1:?queue block <task> <reason>}"; shift; why="${*:-no reason given}"
     need_state "$task" "IN PROGRESS"
     stash_work "$task blocked: $why" || exit 4
+    log_line "$task BLOCKED: $why"
     set_state "$task" BLOCKED || exit 4
     echo "queue: $task BLOCKED ($why)" ;;
   recover)
     for t in $(rows | awk -F'\t' '$4 == "IN PROGRESS" { print $1 }'); do
       stash_work "$t interrupted" || exit 4
+      log_line "$t interrupted: back to PENDING, its work is in stash \"$t interrupted\""
       set_state "$t" PENDING || exit 4
       echo "queue: $t back to PENDING"
     done ;;

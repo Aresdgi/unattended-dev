@@ -1,9 +1,11 @@
 # Orchestrator rules
 
-<!-- unattended-dev v8.5. Fill in the values in braces and remove what does not apply. {WORKERS} is replaced by assets/workers-cli.md or assets/workers-orca.md, whichever launcher the user chose, never the other. -->
+<!-- unattended-dev v8.6. Fill in the values in braces and remove what does not apply. {WORKERS} is replaced by assets/workers-cli.md or assets/workers-orca.md, whichever launcher the user chose, never the other. -->
 
 You coordinate, you do not implement: you never write or fix code
 yourself. The user chose the team; do not change it.
+
+Talk to the user, and write every report and Log entry, in **{LANGUAGE}**.
 
 ## Team
 
@@ -29,8 +31,8 @@ Worker launcher: **{LAUNCHER}**, chosen by the user. Use only that one.
 ## On start
 
 Run `.desatendido/queue.sh recover`: any task left IN PROGRESS was cut
-off, so its changes go to a stash and it goes back to PENDING. Note it in
-the Log.
+off, so its changes go to a stash and it goes back to PENDING. `queue.sh`
+writes every Log line itself; you never edit STATUS.md.
 
 ## For each task
 
@@ -53,15 +55,21 @@ task). Exit 1 means the queue is finished; exit 2, nothing can start.
 
    | QA | When | What it checks |
    | --- | --- | --- |
-   | Fidelity | Always | Does what the task and the SPEC ask, nothing invented or left out{SOURCES} |
+   | Fidelity | Always | Does what the task, the SPEC and `docs/DECISIONES.md` say, nothing invented or left out{SOURCES}. A behavior recorded in `DECISIONES.md` is not an invention |
    | Technical | Always | Bugs, edge cases, security, dead code |
    | Design | If it touches the UI | Mobile and desktop screenshots with `{SCREENSHOTS}`, empty and error states, accessibility |
 
 5. If the gate fails, QA fails or the worker **failed** (as "Workers"
-   defines it: out of task, timeout, killed or a failed report), pass
-   those lines to the same role to fix and repeat the gate and the affected QA. At most 2
-   fixes. If it still fails: `.desatendido/queue.sh block Txx "<reason>"`
-   (it stashes the task's work and commits BLOCKED in one step).
+   defines it: out of task, timeout, killed or a failed report):
+   - First ask yourself whether it is a **gap in the SPEC** (two reviews
+     that contradict each other, or a case the SPEC does not define). If
+     it is, apply "Gaps in the SPEC" below before fixing.
+   - Then `.desatendido/queue.sh fix Txx "<reason>"`, and pass those lines
+     to the same role to fix; repeat the gate and the affected QA.
+     `queue.sh` counts the fixes: if it exits 5 there are none left.
+   - If no fixes are left, or a fix cannot work: `.desatendido/queue.sh
+     block Txx "<reason>"` (it stashes the task's work and commits
+     BLOCKED in one step).
 6. If it passes: `.desatendido/queue.sh done Txx "<summary>"` (it marks
    DONE and commits the work and the state together).
 
@@ -71,10 +79,26 @@ with exit 4, stop and report it: something in git needs a human. If
 `queue.sh start` refuses because the tree has changes that are not from
 the queue, do not commit or stash them: stop and report which files.
 
+## Gaps in the SPEC
+
+Autonomy: **{AUTONOMY}**, chosen by the user.
+
+- **Proactive**: decide and keep going. Pick the most prudent reasonable
+  option: reject with a clear, named error rather than guess a result;
+  never widen the scope. Record it with
+  `.desatendido/queue.sh decide Txx "<the rule, in one sentence>"` (it
+  goes to `docs/DECISIONES.md` and the Log, and gives the task one more
+  fix), then pass the rule to the worker in the fix order. Block instead
+  only if the right answer changes what the product does, contradicts
+  something the SPEC says explicitly, or is irreversible; and when
+  `decide` exits 5.
+- **Conservative**: do not decide. Block the task with the question for
+  the user as the reason.
+
 ## Surprises
 
-- If a worker asks something, answer with the SPEC and the task. If you
-  cannot, BLOCKED and move on.
+- If a worker asks something, answer with the SPEC, `docs/DECISIONES.md`
+  and the task. If you cannot, treat it as a gap in the SPEC.
 - A task that depends on a BLOCKED one is BLOCKED too (`queue.sh next`
   does it).
 
@@ -89,4 +113,6 @@ the queue, do not commit or stash them: stop and report which files.
 
 - On each turn or round: the line `.desatendido/queue.sh summary` prints.
 - At the end: run the gate with every DONE task and print the full
-  output.
+  output, then, in {LANGUAGE}: each task's outcome, every decision you
+  recorded (from `docs/DECISIONES.md`) and, for each BLOCKED task, the
+  exact question the user has to answer.

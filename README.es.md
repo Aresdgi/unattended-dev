@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/versión-8.5.0-7c3aed?style=for-the-badge" alt="versión 8.5.0"></a>
+  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/versión-8.6.0-7c3aed?style=for-the-badge" alt="versión 8.6.0"></a>
   <img src="https://img.shields.io/badge/estado-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="tests de los scripts"></a>
   <a href="#licencia"><img src="https://img.shields.io/badge/licencia-MIT-22c55e?style=for-the-badge" alt="licencia MIT"></a>
@@ -124,6 +124,25 @@ portátil, se relanza y retoma donde se quedó.
 
 Push, despliegues, borrados y datos reales quedan fuera de la cola. Eso
 se hace contigo delante.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🧭 No se para en cada duda
+
+Antes de lanzar, otro modelo busca huecos en la SPEC y los resolvéis en una
+ronda. Si aun así aparece uno de noche, elige la opción más prudente, la
+apunta en `docs/DECISIONES.md` y sigue.
+
+</td>
+<td valign="top">
+
+### 🗒️ Todo queda apuntado
+
+Los inicios, arreglos, decisiones y bloqueos van solos al Log de
+`STATUS.md`, y el orquestador te informa en tu idioma.
 
 </td>
 </tr>
@@ -304,6 +323,8 @@ los de Orca.
 .desatendido/queue.sh start T01
 .desatendido/queue.sh done T01 "resumen"   # DONE + commit, de una vez
 .desatendido/queue.sh block T01 "motivo"   # stash + BLOCKED, de una vez
+.desatendido/queue.sh fix T01 "motivo"     # cuenta un arreglo; sale con 5 si no quedan
+.desatendido/queue.sh decide T01 "regla"   # apunta una decisión por defecto, +1 arreglo
 
 # Un worker, con sus archivos permitidos y los tests en solo lectura
 .desatendido/lanzar-worker.sh implements T01 \
@@ -377,8 +398,11 @@ Valen siempre, sea cual sea el equipo o el modo:
 > - **Sin red de seguridad no hay lanzamiento.** Hacen falta tests de
 >   aceptación verificados, la guardia en el gate, la prueba de humo en verde
 >   y la prueba en seco del lanzamiento superada.
-> - **Los huecos se preguntan.** Si falta algo en la SPEC, la skill te
->   pregunta en vez de rellenarlo en silencio.
+> - **Nada se decide en silencio.** Los huecos que aparecen al preparar se
+>   preguntan. Los que aparecen durante la cola siguen la autonomía que
+>   elegiste: *proactiva* (por defecto) apunta una regla prudente en
+>   `docs/DECISIONES.md` y sigue, *conservadora* bloquea la tarea con la
+>   pregunta. Lo que cambie lo que hace el producto siempre te lo deja a ti.
 > - **Las credenciales nunca entran en la cola**, ni `.env`, claves o logs
 >   en los commits.
 > - **La cola solo hace commit de su propio trabajo.** Una tarea no empieza
@@ -495,11 +519,14 @@ borrarlos y espera tu OK.
 
 <br/>
 
-Tiene dos intentos de arreglo. Si sigue fallando, queda **BLOCKED** con el
-motivo en `STATUS.md`, sus cambios se guardan en un `git stash` y el
-orquestador sigue con la siguiente. Las tareas que dependían de ella también
-quedan bloqueadas. En la revisión te propone si arreglar la tarea, la SPEC o
-los tests, con supervisión.
+Tiene dos intentos de arreglo, que cuenta `queue.sh`. Si el problema es un
+hueco de la SPEC y la autonomía es proactiva, apunta una regla prudente en
+`docs/DECISIONES.md`, que le da un arreglo más. Si sigue fallando, queda
+**BLOCKED** con el motivo en el Log, sus cambios se guardan en un
+`git stash` y el orquestador sigue con la siguiente. Las tareas que
+dependían de ella también quedan bloqueadas. En la revisión repasáis
+primero las decisiones, y te propone si arreglar la tarea, la SPEC o los
+tests, con supervisión.
 
 </details>
 

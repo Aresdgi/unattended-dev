@@ -5,32 +5,36 @@ Do it with the user when they come back with the result. {TAG} is
 
 ## Checks
 
-1. Queue state: `.desatendido/queue.sh summary`
-2. Acceptance tests intact, with the tests of every DONE task:
+1. Queue state: `.desatendido/queue.sh summary`, and the Log at the end
+   of STATUS.md.
+2. **Decisions first**: go through `docs/DECISIONES.md` with the user, one
+   by one. For each one they reject, propose how to undo it (the commit is
+   in git) and add the right rule to the SPEC.
+3. Acceptance tests intact, with the tests of every DONE task:
 
    ```zsh
    .desatendido/guardia-tests.sh {TAG} <tests-folder> $(.desatendido/queue.sh tests)
    ```
 
-3. Gate run by the user: `npm run gate` (or the project's one).
-4. Manual test: 3 to 5 calls or screens with a known result, taken from
+4. Gate run by the user: `npm run gate` (or the project's one).
+5. Manual test: 3 to 5 calls or screens with a known result, taken from
    the SPEC. Write the exact command.
-5. Did the orchestrator read code? Have the user search the session for
+6. Did the orchestrator read code? Have the user search the session for
    reads of `src/` or of the tests (`claude attach <id>`, `tmux attach`
    or the log, depending on the launcher).
-6. Leftovers: background sessions (`claude agents`), tmux sessions
+7. Leftovers: background sessions (`claude agents`), tmux sessions
    (`tmux ls`), terminals left open in Orca or elsewhere, hung processes
    and `caffeinate` (`kill $(cat logs/caffeinate.pid)` if it is still
    alive). Close them. If there was an external loop, check
    `logs/bucle-*.log` and delete `AGENT_STOP` if it was left behind. If a
    worker exited with 3 (OUT OF TASK) or 124 (TIMEOUT), look at its log.
-7. BLOCKED tasks: `git stash list`. Read the reason in STATUS.md and
+8. BLOCKED tasks: `git stash list`. Read the reason in STATUS.md and
    propose whether to fix the task, the SPEC or the tests (supervised).
-8. **Launcher**: the one in `ORQUESTADOR.md` must be the one the user
+9. **Launcher**: the one in `ORQUESTADOR.md` must be the one the user
    chose. With Orca, `orca orchestration worker-list --run <run_id>
    --terminal-state reclaimable --json` returns none, and no worker tabs
    are left open in Orca.
-9. If everything is fine: `git push`.
+10. If everything is fine: `git push`.
 
 ## Results table
 

@@ -204,6 +204,51 @@ check "the task did not start" 0 $Q state T03; check_out "T03 still PENDING" "PE
 check "my change is untouched" 0 grep -q "my own note" README.md
 git checkout -q -- README.md
 
+echo "== queue.sh: fixes, decisions and the Log"
+new_repo fixes
+cat > STATUS.md <<'EOF2'
+| Task | Title | Depends on | Test | State |
+| --- | --- | --- | --- | --- |
+| T01 | a | none | tests/acceptance/T01.test.ts | PENDING |
+| T02 | b | T01 | tests/acceptance/T02.test.ts | PENDING |
+
+## Log
+
+EOF2
+for t in T01 T02; do printf "describe.skip('$t', () => {})\n" > tests/acceptance/$t.test.ts; done
+git add -A; git commit -qm start
+Q=".desatendido/queue.sh"
+$Q start T01 >/dev/null
+check "the Log records the start" 0 grep -q "T01 started" STATUS.md
+echo half > src/T01.ts
+check "fix 1 is allowed" 0 $Q fix T01 "gate red"; check_out "it counts" "fix 1 of 2"
+check "fix 2 is allowed" 0 $Q fix T01 "QA FAIL"; check_out "it counts" "fix 2 of 2"
+check "a third fix is refused with 5" 5 $Q fix T01 "again"
+check_out "it says to block" "block it"
+check "a decision is recorded" 0 $Q decide T01 "reject distances under 0.1 km with fuera_de_rango"
+check "the decision is in DECISIONES.md" 0 grep -q "T01: reject distances under 0.1 km" docs/DECISIONES.md
+check "the decision is committed" 0 bash -c 'git show HEAD --name-only | grep -q docs/DECISIONES.md'
+check "the task work is not in the decision commit" 1 bash -c 'git show HEAD --name-only | grep -q src/T01.ts'
+check "a decision gives one more fix" 0 $Q fix T01 "after the decision"; check_out "fix 3 of 3" "fix 3 of 3"
+check "then it is refused again" 5 $Q fix T01 "more"
+$Q decide T01 "second decision" >/dev/null
+check "a third decision is refused with 5" 5 $Q decide T01 "third"
+check "block writes the reason in the Log" 0 $Q block T01 "contradictory reviews"
+check "the Log has the BLOCKED line" 0 grep -q "T01 BLOCKED: contradictory reviews" STATUS.md
+check "the decisions survive the block" 0 grep -q "second decision" docs/DECISIONES.md
+check "next writes why a dependent is blocked" 1 $Q next
+check "the Log says T02 depends on T01" 0 grep -q "T02 BLOCKED: depends on T01" STATUS.md
+$Q set T01 PENDING >/dev/null; $Q set T02 PENDING >/dev/null
+$Q start T01 >/dev/null
+check "a new start resets the fix count" 0 $Q fix T01 "fresh start"; check_out "fix 1 of 2" "fix 1 of 2"
+mkdir -p src; echo impl > src/T01.ts
+check "done writes the Log line in the same commit" 0 $Q done T01 "implemented"
+check "the DONE line is in the committed STATUS.md" 0 bash -c 'git show HEAD:STATUS.md | grep -q "T01 DONE: implemented"'
+$Q start T02 >/dev/null; mkdir -p src; echo half > src/T02.ts
+check "recover writes the interruption in the Log" 0 $Q recover
+check "the Log names the stash" 0 grep -q "T02 interrupted: back to PENDING" STATUS.md
+check "fix needs the task IN PROGRESS" 3 $Q fix T02 "x"
+
 echo "== bucle.sh"
 new_repo loop
 echo rules > ORQUESTADOR.md

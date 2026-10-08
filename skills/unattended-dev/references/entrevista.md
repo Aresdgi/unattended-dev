@@ -13,6 +13,12 @@ mark "(default)".
 - **Data**: where it comes from and whether there is a source of truth
   (regulation, website, known algorithm, design). Credentials never go
   into the queue.
+- **Limits of every input**: minimum, maximum and units of each value
+  the user can enter, and what happens outside them (a named error). Ask
+  it even if it seems obvious: "greater than 0" lets through values so
+  small or so large that the result breaks (infinite, overflow, absurd).
+  Propose sensible limits and mark them "(default)" if the user does not
+  care.
 - **Verification**: tests, screenshots, comparing with the source. With
   a UI: sizes, empty and error states, minimum accessibility.
 - **UI behaviours** a worker would have to decide alone (what is hidden,

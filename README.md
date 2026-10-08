@@ -12,7 +12,7 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/version-8.5.0-7c3aed?style=for-the-badge" alt="version 8.5.0"></a>
+  <a href="https://github.com/Aresdgi/unattended-dev"><img src="https://img.shields.io/badge/version-8.6.0-7c3aed?style=for-the-badge" alt="version 8.6.0"></a>
   <img src="https://img.shields.io/badge/status-experimental-f59e0b?style=for-the-badge" alt="experimental">
   <a href="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml"><img src="https://github.com/Aresdgi/unattended-dev/actions/workflows/test.yml/badge.svg" alt="script tests"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="MIT license"></a>
@@ -123,6 +123,25 @@ sleep, relaunch it and it picks up where it left off.
 
 Push, deployments, deletions and real data stay out of the queue. Those
 are done with you watching.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🧭 It doesn't stop at every doubt
+
+Before launching, another model hunts for gaps in the SPEC and you settle
+them in one round. If one still shows up overnight, it picks the most
+prudent option, writes it in `docs/DECISIONES.md` and keeps going.
+
+</td>
+<td valign="top">
+
+### 🗒️ Everything is written down
+
+Starts, fixes, decisions and blocks go into the Log of `STATUS.md` by
+themselves, and the orchestrator reports to you in your language.
 
 </td>
 </tr>
@@ -302,6 +321,8 @@ workers.
 .desatendido/queue.sh start T01
 .desatendido/queue.sh done T01 "summary"    # DONE + commit, in one step
 .desatendido/queue.sh block T01 "reason"    # stash + BLOCKED, in one step
+.desatendido/queue.sh fix T01 "reason"      # counts a fix; exit 5 when none are left
+.desatendido/queue.sh decide T01 "rule"     # records a default decision, +1 fix
 
 # A worker, with its allowed files and the tests read-only
 .desatendido/lanzar-worker.sh implements T01 \
@@ -373,8 +394,11 @@ They always apply, whatever the team or the mode:
 >   deployments, publishing or push are done with you watching.
 > - **No safety net, no launch.** It needs verified acceptance tests, the
 >   guard in the gate, a green smoke test and a passed launch dry run.
-> - **Gaps get asked about.** If something is missing from the SPEC, the
->   skill asks you instead of filling it in silently.
+> - **Nothing is decided silently.** Gaps found while preparing are asked
+>   about. Gaps found during the queue follow the autonomy you chose:
+>   *proactive* (default) records a prudent rule in `docs/DECISIONES.md`
+>   and keeps going, *conservative* blocks the task with the question.
+>   Anything that changes what the product does is always left to you.
 > - **Credentials never go into the queue**, and no `.env`, keys or logs
 >   in the commits.
 > - **The queue only commits its own work.** A task won't start while the
@@ -490,11 +514,14 @@ it proposes deleting them and waits for your OK.
 
 <br/>
 
-It gets two fix attempts. If it still fails, it's marked **BLOCKED** with the
-reason in `STATUS.md`, its changes are saved in a `git stash` and the
-orchestrator moves on to the next one. Tasks that depended on it are blocked
-too. In the review it proposes whether to fix the task, the SPEC or the
-tests, supervised.
+It gets two fix attempts, counted by `queue.sh`. If the problem is a gap in
+the SPEC and autonomy is proactive, it records a prudent rule in
+`docs/DECISIONES.md`, which earns one more fix. If it still fails, it's
+marked **BLOCKED** with the reason in the Log, its changes are saved in a
+`git stash` and the orchestrator moves on to the next one. Tasks that
+depended on it are blocked too. In the review you go through the decisions
+first, and it proposes whether to fix the task, the SPEC or the tests,
+supervised.
 
 </details>
 

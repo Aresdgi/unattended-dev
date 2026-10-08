@@ -1,6 +1,6 @@
 # How to launch the queue
 
-<!-- unattended-dev v8.5. Fill in everything. If you launched it yourself, fill in "Launched for you" and delete "Launch it yourself"; if not, the other way round. -->
+<!-- unattended-dev v8.6. Fill in everything. If you launched it yourself, fill in "Launched for you" and delete "Launch it yourself"; if not, the other way round. -->
 
 **Before:** note the quota left on each tool of the team and the time. If
 one of them is not enough for the queue, wait for it to renew or switch

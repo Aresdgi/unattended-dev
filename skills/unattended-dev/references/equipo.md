@@ -43,7 +43,12 @@ otherwise your recommendation.
 4. **QA**: recommend a provider different from the implementer's. Models
    find between 8 and 10 points more bugs in someone else's code than in
    their own.
-5. **Worker launcher**, only if Orca is installed: **CLI** (each worker is
+5. **Autonomy** when the queue finds a gap in the SPEC: **proactive**
+   (recommended for unattended runs: it picks the most prudent option,
+   records it in `docs/DECISIONES.md` and keeps going; you review the
+   decisions afterwards) or **conservative** (it blocks the task and
+   leaves the question for you).
+6. **Worker launcher**, only if Orca is installed: **CLI** (each worker is
    a command, nothing to watch; works anywhere) or **Orca** (each worker in
    its own tab that you can watch, closed when no longer needed; the
    orchestrator must run in an Orca tab). Without Orca, it is CLI and you
@@ -69,6 +74,7 @@ Ask whether to save it as "the usual" in
 - Design: <tool> / <model> or "same as implements"
 - QA: <tool> / <model>
 - Worker launcher: <cli | orca>
+- Autonomy: <proactive | conservative>
 ```
 
 Then turn each role into its real command (`references/lanzadores.md`)

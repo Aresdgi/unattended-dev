@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unattended-dev v8.5: the protections around one worker, in two steps, for
+# unattended-dev v8.6: the protections around one worker, in two steps, for
 # workers that start and finish on their own (for example Orca workers).
 # lanzar-worker.sh uses the same two steps around the command it runs.
 #

@@ -27,3 +27,31 @@ jobs:
           ! grep -rn "unattended-dev v[0-9]" skills/ | grep -vF "unattended-dev v${v%.*}"
       - name: Tests
         run: bash tests/run.sh
+
+  # After the tests pass on main: a GitHub Release for every version in
+  # CHANGELOG.md that does not have one yet, on the commit named
+  # "unattended-dev X.Y.Z: ...". The version in plugin.json is the latest.
+  release:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Releases from the changelog
+        run: |
+          current=$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' .claude-plugin/plugin.json)
+          for v in $(grep -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | tr -d '#[] ' | sort -V); do
+            if gh release view "v$v" >/dev/null 2>&1; then continue; fi
+            sha=$(git log --format=%H -F --grep="unattended-dev $v:" --reverse HEAD | head -1)
+            if [ -z "$sha" ]; then echo "::warning::no commit 'unattended-dev $v:' for v$v"; continue; fi
+            title=$(python3 .github/scripts/release_notes.py "$v" notes.md)
+            latest=false; [ "$v" = "$current" ] && latest=true
+            gh release create "v$v" --target "$sha" --title "$title" --notes-file notes.md --latest="$latest"
+            echo "Released v$v on ${sha:0:7}"
+          done

@@ -13,15 +13,13 @@ of the skill: users never load this file.
    bottom of each file. Write what changes for the user, not how.
 3. `bash tests/run.sh` passes. CI also checks that the version has its
    entry in both changelogs and matches both READMEs.
-4. Commit `unattended-dev X.Y.Z: <summary>` on a branch, wait for CI, then
-   fast-forward `main`.
-5. Tag and release, with the changelog entry as the notes (English, then
-   Spanish under a `<details>`):
-
-   ```zsh
-   git tag -a vX.Y.Z -m "unattended-dev X.Y.Z" && git push origin vX.Y.Z
-   gh release create vX.Y.Z --title "X.Y.Z: <summary>" --notes-file notes.md --latest
-   ```
+4. Commit `unattended-dev X.Y.Z: <summary>` (exactly that prefix) on a
+   branch, wait for CI, then fast-forward `main`.
+5. Nothing else: once CI passes on `main`, its `release` job creates the
+   tag and the GitHub Release for every changelog version that has none,
+   on the commit `unattended-dev X.Y.Z: ...`, with the changelog entry as
+   notes (`.github/scripts/release_notes.py`). The version in
+   `plugin.json` is marked latest.
 
 ## Style
 
